@@ -1,14 +1,14 @@
 package tq
 
 import (
-	"encoding/hex"
-	"encoding/json"
-	_ "fmt"
-	"github.com/shopspring/decimal"
-	"parser/common"
-	_ "strconv"
-	"strings"
-	"time"
+    "encoding/hex"
+    "encoding/json"
+    _ "fmt"
+    "github.com/shopspring/decimal"
+    "github.com/rayjay214/parser/common"
+    _ "strconv"
+    "strings"
+    "time"
 )
 
 type TQ_V6 struct {

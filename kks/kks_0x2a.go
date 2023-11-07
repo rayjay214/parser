@@ -1,12 +1,12 @@
 package kks
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/shopspring/decimal"
-	"parser/common"
-	_ "strconv"
-	"time"
+    "encoding/json"
+    "fmt"
+    "github.com/shopspring/decimal"
+    "github.com/rayjay214/parser/common"
+    _ "strconv"
+    "time"
 )
 
 type Kks_0x2a struct {

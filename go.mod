@@ -1,4 +1,4 @@
-module parser
+module github.com/rayjay214/parser
 
 go 1.20
 

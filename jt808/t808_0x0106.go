@@ -1,34 +1,34 @@
 package jt808
 
 import (
-	"parser/common"
+    "github.com/rayjay214/parser/common"
 )
 
 type T808_0x0106 struct {
-	Result byte
+    Result byte
 }
 
 func (entity *T808_0x0106) MsgID() MsgID {
-	return MsgT808_0x0106
+    return MsgT808_0x0106
 }
 
 func (entity *T808_0x0106) Encode() ([]byte, error) {
-	writer := common.NewWriter()
+    writer := common.NewWriter()
 
-	//todo
+    //todo
 
-	return writer.Bytes(), nil
+    return writer.Bytes(), nil
 }
 
 func (entity *T808_0x0106) Decode(data []byte) (int, error) {
-	reader := common.NewReader(data)
+    reader := common.NewReader(data)
 
-	var err error
+    var err error
 
-	entity.Result, err = reader.ReadByte()
-	if err != nil {
-		return 0, err
-	}
+    entity.Result, err = reader.ReadByte()
+    if err != nil {
+        return 0, err
+    }
 
-	return len(data) - reader.Len(), nil
+    return len(data) - reader.Len(), nil
 }

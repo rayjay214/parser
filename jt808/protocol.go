@@ -8,7 +8,7 @@ import (
     "github.com/funny/link"
     log "github.com/sirupsen/logrus"
     "io"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 type Protocol struct {

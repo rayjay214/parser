@@ -2,8 +2,8 @@ package jt808
 
 import (
     "encoding/json"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 上传蓝牙相关定位模式

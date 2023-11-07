@@ -6,7 +6,7 @@ import (
     "github.com/gocql/gocql"
     "github.com/shopspring/decimal"
     "net"
-    "parser/jt808"
+    "github.com/rayjay214/parser/jt808"
     "strconv"
     "sync"
     "sync/atomic"

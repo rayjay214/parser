@@ -1,8 +1,8 @@
 package jt808
 
 import (
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 行驶记录参数下传命令

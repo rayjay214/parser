@@ -1,6 +1,6 @@
 package jt808
 
-import "parser/jt808/errors"
+import "github.com/rayjay214/parser/jt808/errors"
 
 // 事件报告
 type T808_0x0301 struct {

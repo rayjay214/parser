@@ -1,9 +1,9 @@
 package extra
 
 import (
-    _ "parser/jt808/errors"
+    _ "github.com/rayjay214/parser/jt808/errors"
     _ "encoding/binary"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "strconv"
 )
 

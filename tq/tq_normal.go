@@ -5,7 +5,7 @@ import (
     _ "encoding/json"
     "fmt"
     "github.com/shopspring/decimal"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "strconv"
     _ "strconv"
     "strings"

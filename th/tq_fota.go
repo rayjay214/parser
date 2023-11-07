@@ -3,7 +3,7 @@ package th
 import (
     _ "encoding/json"
     _ "fmt"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     _ "strconv"
     _ "strings"
 )

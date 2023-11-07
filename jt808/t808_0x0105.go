@@ -1,7 +1,7 @@
 package jt808
 
 import (
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "encoding/json"
 )
 

@@ -1,8 +1,8 @@
 package jt808
 
 import (
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 单条存储多媒体数据检索上传命令

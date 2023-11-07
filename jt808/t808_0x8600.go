@@ -3,8 +3,8 @@ package jt808
 import (
     "github.com/shopspring/decimal"
     "math"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
     "time"
 )
 

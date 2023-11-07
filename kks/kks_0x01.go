@@ -1,10 +1,10 @@
 package kks
 
 import (
-	"encoding/json"
-	"fmt"
-	"parser/common"
-	"strconv"
+    "encoding/json"
+    "fmt"
+    "github.com/rayjay214/parser/common"
+    "strconv"
 )
 
 type Kks_0x01 struct {

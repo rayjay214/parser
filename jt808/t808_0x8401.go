@@ -5,8 +5,8 @@ import (
     "golang.org/x/text/encoding/simplifiedchinese"
     "golang.org/x/text/transform"
     "io/ioutil"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 设置电话本

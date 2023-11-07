@@ -2,8 +2,8 @@ package jt808
 
 import (
     _ "encoding/json"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 查询终端属性应答

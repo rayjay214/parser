@@ -7,9 +7,9 @@ import (
     "github.com/shopspring/decimal"
     log "github.com/sirupsen/logrus"
     "math"
-    "parser/common"
-    "parser/jt808/errors"
-    "parser/jt808/extra"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/extra"
     "reflect"
     "time"
 )

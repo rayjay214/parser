@@ -1,7 +1,7 @@
 package extra
 
 import (
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 type Extra_0xe5 struct {

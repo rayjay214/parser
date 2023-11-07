@@ -1,9 +1,9 @@
 package extra
 
 import (
-    _ "parser/jt808/errors"
+    _ "github.com/rayjay214/parser/jt808/errors"
     "encoding/hex"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "encoding/json"
 )
 

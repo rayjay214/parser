@@ -1,7 +1,7 @@
 package jt808
 
 import (
-    "parser/common"
+    "github.com/rayjay214/parser/common"
 )
 
 // 平台通用应答

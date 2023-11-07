@@ -12,7 +12,7 @@ import (
     "io"
     "net"
     "os"
-    "parser/jt808"
+    "github.com/rayjay214/parser/jt808"
     "strconv"
     "syscall"
     "time"

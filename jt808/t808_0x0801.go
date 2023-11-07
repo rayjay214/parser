@@ -4,8 +4,8 @@ import (
     "bytes"
     "io"
     "io/ioutil"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 多媒体数据上传

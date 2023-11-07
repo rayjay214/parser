@@ -1,9 +1,9 @@
 package ota
 
 import (
-	_ "fmt"
-	"parser/common"
-	"strconv"
+    _ "fmt"
+    "github.com/rayjay214/parser/common"
+    "strconv"
 )
 
 type Body_0x91 struct {

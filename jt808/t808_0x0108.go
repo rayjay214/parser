@@ -1,6 +1,6 @@
 package jt808
 
-import "parser/jt808/errors"
+import "github.com/rayjay214/parser/jt808/errors"
 
 // 终端升级结果通知
 type T808_0x0108 struct {

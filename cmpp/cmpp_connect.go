@@ -1,10 +1,10 @@
 package cmpp
 
 import (
-	_ "encoding/json"
-	_ "fmt"
-	"parser/common"
-	_ "strconv"
+    _ "encoding/json"
+    _ "fmt"
+    "github.com/rayjay214/parser/common"
+    _ "strconv"
 )
 
 type CMPP_CONNECT struct {

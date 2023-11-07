@@ -3,7 +3,7 @@ package kks
 import (
     "encoding/json"
     "fmt"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     _ "strconv"
     "time"
 )

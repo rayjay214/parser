@@ -1,9 +1,9 @@
 package extra
 
 import (
-	"encoding/binary"
-	"fmt"
-	"parser/jt808/errors"
+    "encoding/binary"
+    "fmt"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 里程

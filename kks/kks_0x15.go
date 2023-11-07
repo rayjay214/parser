@@ -1,13 +1,13 @@
 package kks
 
 import (
-	"encoding/binary"
-	"encoding/json"
-	"fmt"
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
-	"parser/common"
-	_ "strconv"
+    "encoding/binary"
+    "encoding/json"
+    "fmt"
+    "golang.org/x/text/encoding/unicode"
+    "golang.org/x/text/transform"
+    "github.com/rayjay214/parser/common"
+    _ "strconv"
 )
 
 type Kks_0x15 struct {

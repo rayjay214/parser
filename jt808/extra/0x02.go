@@ -3,7 +3,7 @@ package extra
 import (
     "encoding/binary"
     "fmt"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 油量

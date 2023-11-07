@@ -1,7 +1,7 @@
 package jt808
 
 import (
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "golang.org/x/text/encoding/unicode"
     "golang.org/x/text/transform"
 )

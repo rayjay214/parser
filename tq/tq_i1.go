@@ -7,7 +7,7 @@ import (
     _ "github.com/shopspring/decimal"
     "golang.org/x/text/encoding/unicode"
     "golang.org/x/text/transform"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     _ "strconv"
     "strings"
     _ "time"

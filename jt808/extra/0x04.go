@@ -1,9 +1,9 @@
 package extra
 
 import (
-	"encoding/json"
-	"fmt"
-	"parser/jt808/errors"
+    "encoding/json"
+    "fmt"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 基站信息

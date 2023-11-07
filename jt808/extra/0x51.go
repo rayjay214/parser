@@ -1,7 +1,7 @@
 package extra
 
 import (
-    _ "parser/jt808/errors"
+    _ "github.com/rayjay214/parser/jt808/errors"
     "encoding/binary"
     "fmt"
     "encoding/json"

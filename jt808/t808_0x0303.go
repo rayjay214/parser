@@ -1,6 +1,6 @@
 package jt808
 
-import "parser/jt808/errors"
+import "github.com/rayjay214/parser/jt808/errors"
 
 // 信息点播/取消
 type T808_0x0303 struct {

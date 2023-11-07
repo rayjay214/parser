@@ -1,12 +1,12 @@
 package main
 
 import (
-	//"encoding/hex"
-	"fmt"
-	"net"
-	"parser/jt808"
-	"sync/atomic"
-	"time"
+    //"encoding/hex"
+    "fmt"
+    "net"
+    "github.com/rayjay214/parser/jt808"
+    "sync/atomic"
+    "time"
 )
 
 var g_seqno uint32 = 0

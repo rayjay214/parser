@@ -3,7 +3,7 @@ package ota
 import (
     "strconv"
     //"fmt"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
 )
 
 // 消息头

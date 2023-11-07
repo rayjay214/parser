@@ -2,7 +2,7 @@ package th
 
 import (
     _ "fmt"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     _ "strconv"
     "strings"
     "time"

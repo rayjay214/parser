@@ -1,7 +1,7 @@
 package jt808
 
 import (
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 消息体属性

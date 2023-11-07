@@ -1,7 +1,7 @@
 package jt808
 
 import (
-    "parser/common"
+    "github.com/rayjay214/parser/common"
 )
 
 type T808_0x8113 struct {

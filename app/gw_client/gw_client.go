@@ -8,7 +8,7 @@ import (
     "io/ioutil"
     "parser/app/gw_client/myproto/gwpb"
     "net"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "time"
 )
 

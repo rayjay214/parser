@@ -3,7 +3,7 @@ package extra
 import (
     "fmt"
     log "github.com/sirupsen/logrus"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 附加信息

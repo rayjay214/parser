@@ -5,8 +5,8 @@ import (
     "compress/gzip"
     "fmt"
     "io"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 数据压缩上报

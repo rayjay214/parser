@@ -1,10 +1,10 @@
 package jt808
 
 import (
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     "encoding/json"
     "fmt"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/jt808/errors"
     "strconv"
 )
 

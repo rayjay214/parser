@@ -3,8 +3,8 @@ package jt808
 import (
     "crypto/rsa"
     "math/big"
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 终端 RSA公钥

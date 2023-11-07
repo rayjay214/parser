@@ -4,7 +4,7 @@ import (
     _ "encoding/json"
     _ "fmt"
     _ "github.com/shopspring/decimal"
-    "parser/common"
+    "github.com/rayjay214/parser/common"
     _ "strconv"
     "strings"
     _ "time"

@@ -1,14 +1,14 @@
 package jt808
 
 import (
-	"bytes"
-	"encoding/binary"
-	"fmt"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
-	"io/ioutil"
-	"parser/common"
-	"parser/jt808/errors"
+    "bytes"
+    "encoding/binary"
+    "fmt"
+    "golang.org/x/text/encoding/simplifiedchinese"
+    "golang.org/x/text/transform"
+    "io/ioutil"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 var ParamIdDesc = map[uint32]string{

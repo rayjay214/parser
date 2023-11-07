@@ -1,8 +1,8 @@
 package jt808
 
 import (
-    "parser/common"
-    "parser/jt808/errors"
+    "github.com/rayjay214/parser/common"
+    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 多媒体事件信息上传
