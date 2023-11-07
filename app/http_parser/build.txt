@@ -1,0 +1,2 @@
+$env:GOOS = "windows"
+$env:GOOS = "linux"

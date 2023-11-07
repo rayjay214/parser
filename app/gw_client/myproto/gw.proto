@@ -1,0 +1,793 @@
+syntax = "proto2";
+
+package slxkgw;
+
+option go_package = "/gwpb";
+
+enum EReqType
+{
+    e_req_purge_fd = 1;      	//清理某一个fd，断开连接
+    e_req_conn_cnt = 2;      	//获取网关当前连接总数
+    e_req_add_imei = 3;      	//添加imei白名单
+    e_req_add_errimei = 4;   	//添加imei黑名单
+    e_req_get_topimei = 5;   	//获取前200个已连接imeis
+    e_req_rmv_errimei = 6;   	//清除黑名单
+    e_req_check_gpsqueue = 7;	//检查轨迹发送队列情况
+}
+
+enum EErrCode
+{
+    e_err_ok = 1;
+    e_err_fd_not_used = 2;
+    e_err_fd_not_found = 3;
+
+    e_err_sys = 100;
+}
+
+message InnerReq
+{
+    required EReqType type = 1000;
+    optional uint64 purge_imei = 1;	//待清理imei
+    optional uint32 purge_fd = 101; 	//filled by gw    
+    repeated uint64 imeis = 3;
+    repeated uint64 err_imeis = 4;
+    repeated uint64 rmv_imeis = 6;
+    optional uint64 check_imei = 7;
+}
+
+message InnerResp
+{
+    optional EErrCode errcode = 1;
+    optional string msg = 2;
+    repeated uint64 topimeis = 3;
+    repeated uint64 add_queue = 4;
+    repeated uint64 loc_queue = 5;
+}
+
+//运行信息，发给分发服务
+message GwRunStatus
+{
+    optional string ip = 1;
+    optional uint32 port = 2;
+    optional uint32 conn_cnt = 3; //当前设备连接数
+}
+
+//需要通过高德获得结果
+message GaodeReqMsg
+{
+    required uint64 imei = 1;
+    optional uint64 datetime = 2;
+    optional string mcc = 3;
+    optional string mnc = 4;
+    message LbsInfo
+    {
+        optional string lac = 1;
+        optional string ci = 2;
+        optional string rssi = 3;
+    }
+    repeated LbsInfo lbsinfo = 5;
+
+    message WifiInfo
+    {
+        optional string ssid = 1;
+        optional string rssi = 2;
+    }
+    repeated WifiInfo wifiinfo = 6;
+
+	message KksDevAlarmMsg
+	{
+        optional uint64 imei = 1;
+    	optional uint32 alarmcode = 2;
+    	optional uint32 lang = 3;
+	}
+	optional KksDevAlarmMsg kksdevalarmmsg = 7;
+}
+
+message LbsMsg
+{
+    required uint64 imei = 1;
+    optional sint32 seq = 2;
+    optional uint64 datetime = 3;
+    optional uint64 systime = 4;
+    optional string ta = 5;
+    optional string mcc = 6;
+    optional string mnc = 7;
+    message LbsInfo
+    {
+        optional string lac = 1;
+        optional string ci = 2;
+        optional string rssi = 3;
+    }
+    repeated LbsInfo lbsinfo = 8;
+};
+
+message WifiMsg
+{
+    required uint64 imei = 1;
+    optional sint32 seq = 2;
+    optional uint64 datetime = 3;
+    optional uint64 systime = 4;
+    message WifiInfo
+    {
+        optional string ssid = 1;
+        optional string rssi = 2;
+    }
+    repeated WifiInfo wifiinfo = 5;
+};
+
+enum ELocType  //定位类型
+{
+	e_lbs = 0;
+	e_gps = 1;
+	e_wifi = 2;
+	e_static_lbs = 3;
+	e_static_gps = 4;
+	e_static_wifi = 5;
+}
+
+//通用消息类型
+enum ECommonMsgType
+{
+    e_modesync = 1; //短信设置的模式同步到服务器
+    e_fence = 2; //围栏位置信息判断
+    e_modeconfirm = 3; //设备执行成功的模式设置到服务器
+    e_opendev = 4; //设备开通
+	e_DataAnalysis = 5 ; //位置数据解析
+    e_kksdevalarm = 6; //康凯斯设备告警
+    e_kksgpsaddrreq = 7; //康凯斯设备gps地址请求
+    e_kkslbsaddrreq = 8; //康凯斯设备lbs地址请求
+    e_cmd_response = 9; //回写指令执行结果
+	e_close_vor = 10; //设备关闭声控
+	e_tqgpsaddrreq = 11; //康凯斯设备gps地址请求
+	e_lbsinfo_collect = 12; //基站信息收集
+    e_kksgt06edevalarm = 13; //康凯斯设备告警
+    e_kksgt06egpsaddrreq = 14; //康凯斯设备gps地址请求
+    e_kksgt06elbsaddrreq = 15; //康凯斯设备lbs地址请求
+}
+
+message ModeSyncMsg
+{
+    optional uint32 mode = 1;
+    optional uint32 conntime = 2;
+    optional uint32 flymode_on = 3;
+    optional uint32 end_duration = 4;
+}
+
+//设备上报地址
+//db:TKV_Location
+message Location
+{
+    optional uint64 imei = 1;//设备imei号
+    optional uint64 date = 2;//日期
+    optional uint64 time = 3;//时间戳
+    optional string addr = 4;//地址
+    optional uint64 direction = 5;//方向
+    optional int64 lat = 6;//经度
+    optional int64 lon = 7;//维度
+    optional uint64 speed = 8;//速度
+    optional uint64 type = 9;//所用的定位方式
+}
+
+//指令日志 
+//db:xclog.T_Cmd_000
+message Cmd
+{
+	optional string key = 1; 
+	optional uint64 cos_time = 2; //响应时间 
+	optional string back_result = 3;//回复结果 
+	optional string back_content = 4;//回复内容 
+}
+
+message ModeConfirmMsg
+{
+    optional uint32 mode = 1;
+    optional uint32 mode_type = 2;
+    optional uint32 mode_value = 3;
+}
+
+message OpenDevMsg
+{
+    optional uint32 start_time = 1;
+    optional uint32 enable_time = 2;
+    optional uint32 end_time = 3;
+}
+
+message KksDevAlarmMsg
+{
+    optional uint64 imei = 1;
+    optional uint32 alarmcode = 2;
+    optional uint32 lang = 3;
+    optional int64 lat = 4;
+    optional int64 lng = 5;
+}
+
+message KksGpsAddrReq
+{
+    optional uint64 imei = 1;
+    optional uint32 lang = 2;
+    optional int64 lat = 3;
+    optional int64 lng = 4;
+    optional string phone = 5;
+    optional uint32 alarmcode = 6;
+}
+
+message KksLbsAddrReq
+{
+    optional uint64 imei = 1;
+    optional uint32 mcc = 2;
+    optional uint32 mnc = 3;
+    optional uint32 lac = 4;
+    optional uint32 cellid = 5;
+    optional string phone = 6;
+    optional uint32 lang = 7;
+    optional uint32 alarmcode = 8;
+}
+
+message TqGpsAddrReq
+{
+	optional uint64 imei = 1;
+    optional int64 lat = 2;
+    optional int64 lng = 3;
+}
+
+message LbsInfoCollect
+{
+	optional GaodeReqMsg lbs_msg = 1;
+	optional int32 lat = 2; //gps定位纬度
+	optional int32 lng = 3; //gps定位经度
+}
+
+//通用消息，发送给CommonConsumer
+message CommonMsg
+{
+    required ECommonMsgType msg_type = 1;
+    required uint64 imei = 2;
+    optional ModeSyncMsg mode_sync_msg = 3;
+    optional Location location_msg = 4;
+    optional ModeConfirmMsg mode_confirm_msg = 5;
+    optional OpenDevMsg open_dev_msg = 6;
+    optional KksDevAlarmMsg kks_dev_alarm_msg = 7;
+    optional KksGpsAddrReq kks_gps_addr_req = 8;
+    optional KksLbsAddrReq kks_lbs_addr_req = 9;
+    optional Cmd cmd_response = 10;
+    optional TqGpsAddrReq tq_gps_addr_req = 11;
+    optional LbsInfoCollect lbs_info_collect = 12;
+    optional KksDevAlarmMsg kks_gt06e_dev_alarm_msg = 13;
+    optional KksGpsAddrReq kks_gt06e_gps_addr_req = 14;
+    optional KksLbsAddrReq kks_gt06e_lbs_addr_req = 15;
+}
+
+message IccidVersionInfo
+{
+    required uint64 imei = 1;
+    required string iccid = 2;
+    optional string devtype = 3;
+    optional string version = 4;
+}
+
+message AudioRecord {
+    optional uint64 imei = 1;
+    optional bytes data = 2;
+    optional int64 start_time = 3;
+    optional int64 end_time = 4;
+    optional EAudioType type = 5;
+    optional bool first_packet = 6;
+    optional uint32 timerfd = 7;
+    optional uint32 pkg_cnt = 8;
+}
+
+enum EProtocol {
+	e_protocol_gt808_2011 = 1;
+    e_protocol_gt808_2013 = 2;
+    e_protocol_gt808_2019 = 3;
+    e_protocol_kks = 100;
+    e_protocol_kks_gt06e = 101;
+    e_protocol_tq = 110;
+}
+
+message DevParam
+{
+    optional uint32 speedvalue      = 1;    //超速阈值
+    optional uint32 delicacy        = 2;    //灵敏度
+    optional uint32 shakevalue      = 3;    //震动报警程度0-关闭（1~5）
+    optional uint32 lowpower        = 4;    //低电报警 （0关 1开）默认开启
+    optional uint32 outlaram        = 5;    //断电报警（拆除报警）（0关 1开）默认开启
+    optional uint32 dropalarm       = 6;    //脱落报警（0关 1开）默认开启
+    optional uint32 indicatorlight  = 7;    //指示灯 0关闭，1打开
+    optional uint32 closeswitch     = 8;    //关机报警（0关 1开）默认开启
+    optional uint32 openswitch      = 9;    //开机报警 启动报警
+    optional uint32 offswitch       = 10;   //离线报警
+    optional uint32 replaystate     = 11;   //继电器开关状态 0-已断开 1-正常
+    optional uint32 soundswitch     = 12;   //声音提示开关 （0关 1开），默认开启
+    optional uint32 language        = 13;   //设备当前语言 0：英文   1：中文，默认中文
+    optional uint32 listen          = 14;   //0-监听模式(默认) 单向 1-通话模式 双向
+    optional string phonebook       = 15;   //设备电话本（管理员号码集合 用来唤醒设备）json字符串数组如:["15090011988","13108789898"]
+    optional string centerphone     = 16;   //中心号码
+    optional string starttime       = 17;   //报警时间段 00:00:00
+    optional string endtime         = 18;   //报警时间段 00:00:00
+    optional uint32 fenceswitch     = 19;   //围栏开关 (0-进围栏 1-出围栏 2-进出围栏 3-关闭)
+    optional uint32 lbsswitch       = 20;   //基站开关 0-关闭 1-打开
+    optional uint32 isdisconn       = 21;   //是否断网 0-不断(默认) 1-断网
+    optional uint32 sleeplocintval  = 22;   //休眠定位上报间隔 单位秒 默认600s
+    optional uint32 sportlocintval  = 23;   //运动定位上报间隔 单位秒 默认30s
+}
+
+
+//参数结构定义 begin
+
+//设备请求下一个周期定位时间
+message DevGetLooplocRequest{
+    required string imei    = 1;
+}
+
+enum SwicthState{                                                                                                                                                                          
+    E_STATE_CLOSE = 0;
+    E_STATE_OPEN  = 1;
+}
+
+//设置电话本
+//0：删除终端上所有存储的联系人；
+//1：表示更新电话本(删除终端中已有全部联系人并追加消息，户的联系人)；
+//2：表示追加电话本；
+//3：表示修改电话本(以联系人为索引)
+enum SETPHONEBOOKSTATE{
+    PHONE_BOOK_DEL = 0;
+    PHONE_BOOK_UPDATE =1;
+    PHONE_BOOK_ADD    = 2;
+    PHONE_BOOK_MODIFY = 3;
+}
+
+//1：呼入；2：呼出；3：呼入/呼出
+enum PHONESTATE{
+    PHONE_INCOMING = 1;
+    PHONE_OUT = 2;
+    PHONE_ALL = 3;
+}
+
+message PhoneInfo{
+    required string phone = 1;   //电话
+    optional string phone_name = 2;  //联系人
+}
+
+message PhoneBookData {
+    required PHONESTATE state = 1;
+    repeated PhoneInfo  phone_info = 2;
+}
+
+//周期定位类型
+enum LoopType {
+    E_LOOP_LOCATION_CANCEL = 0;
+    E_LOOP_LOCATION_MONTH  = 1;
+    E_LOOP_LOCATION_WEEK   = 2;
+    E_LOOP_LOCATION_DAY    = 3;
+}
+
+//IP端口设置
+message ChangeIpPort{
+    required string ip      = 1;
+    required uint32 port    = 2;
+    optional string cmdid 	= 100;
+}
+
+message TerminalSetPhoneBook{
+    required SETPHONEBOOKSTATE op = 1;
+    repeated PhoneBookData phone_data = 2;
+    optional string cmdid = 100;
+}
+
+message RoteLocation{
+    required LoopType rote = 1;
+    optional string   timer= 2;
+}
+
+//新周期定位下发
+enum LocType {
+    E_LOOP_LOC = 0;
+    E_REALTIME_LOC = 1;
+}
+
+enum EAudioType {
+    e_short_audio = 1;  //短录音
+    e_cont_audio = 2;   //声控录音
+}
+
+message UpdateLooplocData {
+    required uint32   locweek   = 1;   // 星期几 0 到6
+    repeated string   locvalue  = 2;  // 这一天的某些时间点这个数据有小到大
+}
+
+message WeekInfo {
+    repeated uint32  week      = 1;
+    required string  value     = 2;
+}
+
+message UpdateLooplocInfo {
+    required uint32   loctype       = 1;        // 0表示周期定位，1表示实时定位
+    optional uint32   locintval     = 2;        // 若为实时定位时，定位间隔 s
+    optional WeekInfo info          = 3;
+    repeated UpdateLooplocData loc  = 4;
+    optional string cmdid = 100;
+}
+
+//设置中心号码
+message UpdateCenterPhone{
+    required string phone = 1;
+    optional string cmdid = 100;
+}
+
+message SetRtlsMode{
+    required uint32 mode = 1;
+    required uint32 value = 2;
+    optional string cmdid = 100;
+}
+
+message SetLocMode{
+    //1.常用模式，5.智能模式，6.待机模式，待机模式按照设定的时间每天连接服务器一次，7.省电模式：关闭拐角补传，设定加大定位间隔；8.点名模式：服务器通过下发8201协议来主动获取定位，设备回复0201上传位置信息
+    required uint32 mode = 1;    
+    optional string timer = 2;  //for 6, 1 and 5 use default 0000
+    optional uint32 value = 3;  //for 7
+    optional string cmdid = 100;
+}
+
+message UpdateLoopSwitchInfo{
+    required uint32 looptype = 1;    //定时模式: 0-每天，1-每月，2-当月 3表示取消
+    repeated string timer = 2;    //定时开关时间段最多三组 不填表示关闭定时开关机 时间不能重叠, eg:09:05-10:39
+    repeated uint32 days = 3;    //模式为1或2时,上传该参数 例如:1 2 13 25 31 范围(1-31)
+    optional string cmdid = 100;
+}
+
+message TrackingRequest
+{
+    optional string account = 1;    //操作账号
+    required string imei = 2;    //临时位置跟踪的设备IMEI
+    required uint32 interval_time = 3;    //跟踪控制的设备上报时间间隔 0-取消追踪
+    optional uint32 effective_time = 4;    //位置跟踪有效期
+    optional uint64 session_id = 5;
+    optional string cmdid = 100;
+}
+
+//短信透传指令(设置与回复)
+message SetDevText{
+    required string imei = 1;    //设备号
+    required string info = 2;    //透传消息内容(或设备回复内容)
+    required uint32 number = 3;  //消息流水号
+    optional string cmdid = 100;
+}
+
+//通用开关
+message CommonSwitch{
+    required uint32 enable = 1;  //0:关，1:开
+    optional string cmdid = 100;
+}
+
+//通用设置
+message CommonConfig {
+    required uint32 value = 1;
+    optional string cmdid = 100;
+}
+
+//通用设置
+message ImeiMsg {
+    required uint64 value = 1;
+    optional string cmdid = 100;
+}
+
+//修改设备类型
+message DeviceType {
+    required string deviceType = 1;
+    optional string cmdid = 100;
+}
+
+//开启录音
+message StartRecord {
+    required uint32 time_in_seconds = 1;
+    optional uint64 session_id = 2;
+    optional string cmdid = 100;
+}
+
+//停止录音
+message StopRecord {
+    optional uint64 session_id = 1;
+    optional string cmdid = 100;
+}
+
+//设备主动请求周期定位数据
+message SyncLoopDataReq {
+    required uint64 imei = 1;
+    optional string cmdid = 100;
+}
+
+message PhoneCallback {
+    required uint32 flag = 1;  //0：普通通话 1:监听
+    required string phone = 2;
+    optional string cmdid = 100;
+}
+
+//电话报警次数
+message PhoneAlarmTimes {
+	optional uint32 call_times = 1;  //电话呼叫次数
+	optional uint32 reserved = 2;
+	optional string cmdid = 100;
+}
+
+//不同类型报警通知方式
+message AlarmNotifyWay {
+	optional uint32 alarm_type = 1;  //报警类型
+	optional uint32 alarm_notify_way = 2;  //报警通知方式
+	optional string cmdid = 100;
+}
+
+//设防及震动报警参数设置
+message FenceShakeAlarm {
+	optional uint32 shake_alarm_swi = 1;  //震动报警开关
+	optional uint32 fence_delay = 2; //自动设防延时时间
+	optional uint32 shake_check_time = 3; //震动检测时间
+	optional uint32 fence_shake_delay = 4; //自动设防震动报警延时
+	optional uint32 shake_alarm_interval = 5; //震动报警间隔
+	optional string cmdid = 100;
+}
+
+//设防模式设置
+message FenceMode {
+	optional uint32 mode = 1; //0-自动设防，1-手动设防
+	optional string cmdid = 100;
+}
+
+message MessageSend {
+	required uint32 locatype = 1;
+	required uint32 locatime = 2;
+	required string carid = 3;
+	required string message = 4;
+	required uint32 ways = 5;
+	optional string cmdid = 6;
+}
+
+message AlarmRespKKS {
+    optional string content = 1;
+    optional uint64 alarmcode = 2;
+    optional uint32 lang = 3;
+}
+
+message AddrRespKKS {
+    optional string content = 1;
+    optional uint32 lang = 2;
+    optional string phone = 3;
+    optional uint32 alarmcode = 4;
+}
+
+message AddrRespTq {
+    optional string content = 1;
+}
+
+message KksSmsContent {
+	optional string content = 1;
+    optional uint32 lang = 2;
+    optional string cmdid = 100;
+}
+
+message TqSmsContent {
+	optional string cmd = 1;
+    repeated string params = 2;
+    optional string cmdid = 100;
+}
+
+message SmsPass {
+    optional string phone = 1;
+    optional string content = 2;
+    optional string cmdid = 100;
+}
+
+message EmptyParam {
+	optional string cmdid = 100;
+}
+
+message PieceThrough {
+	optional string cmd = 1;
+	optional uint32 cmdlen = 2;
+	optional string data = 3;
+	optional string cmdid = 100;
+}
+
+message DelUnLCmd {
+	required ECmdType cmd = 1;
+	optional string cmdid = 100;
+}
+
+message SmsContent {
+	optional string content = 1;
+	optional uint32 lang = 2;
+	optional string cmdid = 100;
+}
+
+// 参数结构定义 end
+
+//终端设置参数
+enum ECmdType {
+    e_cmd_dev_heart             = 1;     /*心跳*/
+    e_cmd_dev_phone_report      = 2;     /*号码上报*/
+    e_cmd_dev_gps_report        = 3;     /*GPS数据上报*/
+    e_cmd_dev_lbs_report        = 4;     /*基站数据上报*/
+    e_cmd_dev_wifi_report       = 5;     /*WIFI数据上报*/
+    e_cmd_dev_alarm_report      = 6;     /*报警上报*/
+    e_cmd_dev_sync_data         = 7;     /*数据同步*/
+    e_cmd_dev_location_manual   = 8;     /*手动定位*/
+    e_cmd_dev_set_time          = 9;     /*设置设备时间*/
+    e_cmd_dev_set_loop          = 10;    /*周期定位*/
+    e_cmd_dev_location_internal = 11;    /*定位间隔*/
+    e_cmd_dev_fence_alarm       = 12;    /*围栏报警*/
+    e_cmd_dev_reset             = 13;    /*恢复出厂*/
+    e_cmd_dev_dormancy          = 14;    /*设备休眠*/
+    e_cmd_dev_sleep_intval      = 15;    /*设备休眠时间设置*/
+    e_cmd_dev_loc_pre           = 16;    /*设备优先定位类型*/
+    e_cmd_dev_charge_state      = 17;    /*设备充电状态上报*/
+    e_cmd_dev_phone_book        = 18;    /*设备电话本*/
+    e_cmd_dev_listen            = 19;    /*监听*/
+    e_cmd_dev_report_location_intval = 20; /*设备上报定位间隔*/
+    e_cmd_dev_domain_set        = 21;    /*更改设备连接地址*/
+    e_cmd_dev_set_alarm_state   = 22;    /*报警开关设置*/
+    e_cmd_replay_switch         = 23;    /*继电器开关*/
+    e_cmd_report_acc_state      = 24;    /*ACC状态上报*/
+    e_cmd_sensity               = 25;    /*灵敏度设置*/
+    e_cmd_gps_state             = 26;    /*GPS休眠*/
+    e_cmd_fly_mode              = 27;    /*休眠进入飞行模式*/
+    e_cmd_dev_stop_gps          = 28;    /*静止GPS数据*/
+    e_cmd_dev_stop_lbs          = 29;    /*静止LBS数据*/
+    e_cmd_dev_stop_wifi         = 30;    /*静止WIFI数据*/
+    e_cmd_dev_gsensor_interval  = 31;    /*设备G-Sensor检测间隔 设备休眠唤醒时间*/
+    e_cmd_dev_gpsadd_lbs_model  = 32;    /*GPS混合模式 0:无, 1:LBS, 2:WIFI, 3:WIFI+LBS */
+    e_cmd_gps_add_lbs_report    = 33;    /*GPS LBS混合数据*/
+    e_cmd_stop_gps_add_lbs      = 34;    /*静止GPS LBS混合数据*/
+    e_cmd_shake_value           = 35;    /*震动报警数值设置0-关闭*/
+    e_cmd_gps_speed_limit       = 36;    /*超速限制设置*/
+    e_cmd_speed_run_value       = 37;    /*运动状态速度值设置 超过该速度判断设备为运动*/
+    e_cmd_inflection            = 38;   //拐点补偿
+    e_cmd_dev_sound_switch      = 39;   //设备声音提示开关
+    //40--59 内部使用,如有使用请参考上下文
+    e_cmd_onekey_state          = 40;   //一键请求设备, 0:睡眠，1:唤醒, 2:重启
+    e_cmd_dev_domain_set_t      = 50;   //设置从IP
+    e_cmd_vor_off               = 59;   //声控开关关闭
+    e_cmd_audio_notify          = 60;   /*通知设备语音数据上传D60#1 D60#0*/ 
+    e_cmd_audio_report          = 61;   /*设备录音上传*/      //声控录音打开 fuyong
+    e_cmd_audio_mem_not_enough  = 62;   //实时定位上传模式 fuyong 枚举名有误导性
+    e_cmd_set_dev_language      = 63;   //设置设备语音
+    e_cmd_set_timer_switch      = 65;   //设置定时开关机
+    e_cmd_set_loc_mode          = 66;   //设置定位模式
+    e_cmd_find_dev              = 67;   //查找设备
+    e_cmd_get_ext_power_t       = 68;   //查询外电电流 电压
+    e_cmd_led_swtich            = 77;   /*LED灯控制*/
+    e_cmd_pullout_alarm         = 78;   /*防拆报警开关*/
+    e_cmd_set_centerphone       = 79;   /*设置中心号码*/
+    e_cmd_set_looptime          = 80;   /*设置设备下次连接服务器时间(周期定位)*/
+    e_cmd_dev_set_log_sign		= 81;	//终端上传指令开关
+    e_cmd_dev_set_low_voltage	= 82;	//低电报警开关
+    e_cmd_dev_set_light_drop	= 83;	//光感脱落，光感恢复，
+    e_cmd_dev_set_close_alarm	= 84;	//关闭报警开关
+    e_cmd_dev_set_dev_mode		= 85;	//下发设置终端定位模式
+    e_cmd_dev_set_remote_upgrade= 86;	//下发设置终端远程升级功能
+    e_cmd_dev_set_tracke		= 87;	//休眠的离线的追踪指令  放在redis里面
+    e_cmd_dev_text              = 88;   //文本下发
+    e_cmd_set_dev_type          = 89;   //设置设备型号
+    e_cmd_set_dev_disconn       = 90;   //设置休眠是否断网 GPRS
+    e_cmd_dev_sleep_location_intval = 91; //设置休眠定位上报间隔
+    e_cmd_start_record          = 92;   //开启录音
+    e_cmd_stop_record           = 93;   //停止录音
+    e_cmd_query_location        = 94;   //点名模式下查询位置信息
+	e_cmd_send_message			= 95;	//设备发送短信
+    e_cmd_af_sleep_action       = 96;   //设置设备休眠后的动作,0-发送心跳数据，1-发送定位数据，2-断网, 默认为0
+    e_cmd_repgps_when_still     = 97;   //设置设备在唤醒状态下静止时是否上报定位数据，0：不上报，1：上报。默认0
+    e_cmd_if_carry_lbswifi      = 98;   //设置设备上报的定位数据中，在定到位的状态下，是否带上基站及wifi等附带信息，0：不带，1：带上，默认为0
+    e_cmd_set_protocol          = 99;   //设置当前协议：0：JT808/2011版本；1: JT808/2013版本；2: JT808/2019版本;3:康凯斯协议。默认为1
+    e_cmd_set_acc_alarm         = 100;  //ACC上电报警开关，0:关闭，1:开启，默认为0（此开关不依赖于设防状态）
+    e_cmd_set_log_level         = 101;  //设置LOG上报等级，0:关闭log上报;1:INFO;2:WARNING;3:ERROR;4:FATAL, 默认为1
+    e_cmd_sms_pass              = 102;  //短信透传，服务器通过设备发送短信到指定的手机号
+    e_cmd_dyd_gracefully 		= 103;	//断油电，结合速度传感器状态
+    e_cmd_recover_dyd 			= 104;	//恢复油电
+    e_cmd_dyd_forcely 			= 105;	//强制断油电
+    e_cmd_set_phone_alarm		= 106;  //设置各种报警触发时电话报警次数（客户定制）
+    e_cmd_set_alarm_notify		= 107;  //设置不同报警类型触发时的报警通知方式（客户定制）BYTE:报警类型，1-震动报警 2-断电报警 3-ACC接通报警（非法启动）BYTE:报警通知方式，0-不通知，1-短信通知，2-电话通知，3-短信加电话通知，默认为0
+	e_cmd_set_shake_alarm		= 108;  //设防及震动报警参数设置：震动报警开关（BYTE）; 0-关闭，1-打开，默认为0;此项为0时，后面参数不生效自动设防延时时间（BYTE,单位：分钟）; 范围：1-60; 默认5分钟震动检测时间（WORD,单位：秒）范围：10-300; 默认10秒自动设防震动报警延时（WORD,单位：秒）范围：10-300; 默认60秒震动报警间隔（WORD,单位：分钟）范围：1-3000; 默认5分钟
+	e_cmd_set_fence_mode		= 109;	//设防模式设置，0-自动设防，1-手动设防，默认为0，设置为1时，设防立即生效（不能同时存在，选择其中一项，另一项就关闭）
+    e_cmd_piece_through		    = 110;
+	//kks begin	
+    e_cmd_alarm_response        = 201;  //康凯斯报警回复
+    e_cmd_gps_addr_response     = 202;  //康凯斯设备gps地址请求回复
+    e_cmd_lbs_addr_response     = 203;  //康凯斯设备lbs地址请求回复
+	e_cmd_kks_sms_content		= 210;	//康凯斯短信指令
+	//kks end
+
+	//tq_begin
+	e_cmd_tq_gps_addr_response  = 301;  //天琴设备gps地址请求回复
+	e_cmd_tq_sms_content		= 302;  //天琴短信指令
+	//tq_end
+	
+    e_cmd_admin_check           = 1088;
+    e_cmd_sim_msg           = 1089;//先占用，并没有实际发送指令，发送了sim卡的指令
+    e_cmd_delete_imei           = 10001;  //清除设备
+	e_cmd_delete_cmd            = 10002;  //清除离线指令
+
+	e_cmd_sms_content			= 20000;  //统一短信文本指令
+};
+
+//将CmdReq和ECmdType对应起来
+message CmdReq
+{
+    optional ImeiMsg todel_imei = 10001;                  //待清理的imei 
+	optional DelUnLCmd del_unline_cmd = 10002;            //待清理的离线指令 
+    required uint64 imei = 1001;
+	required EProtocol protocol = 1002;                  //设备协议
+	repeated ECmdType  cmdtypes = 1003;                  //本次要设置的参数列表
+	optional CommonConfig locationInterval = 11;		 //位置上报间隔
+	optional EmptyParam reset = 13;		 			     //一键恢复出厂设置
+	optional EmptyParam sleep = 14;						 //一键休眠
+	optional CommonConfig sleepTimer = 15;				 //休眠时间设置
+	optional TerminalSetPhoneBook phoneBook = 18;        //设备电话本
+    optional PhoneCallback phoneCallback = 19;           //电话回拨
+	optional CommonConfig locationReport = 20;           //定位上报间隔
+	optional ChangeIpPort mainIpPort = 21;				 //主ip端口设置
+	optional CommonSwitch alarmSwitch = 22;				 //报警开关
+	optional CommonSwitch replySwitch = 23;			     //继电器开关
+	optional CommonConfig sensitivity = 25;              //灵敏度控制
+	optional CommonConfig setSleepWakeup = 31;           //休眠唤醒时间
+	optional CommonConfig setLBSAddGps = 32;			 //附加信息中对lbs,wifi的支持 0:无, 1:LBS, 2:WIFI, 3:WIFI+LBS
+	optional CommonConfig shakeAlarm = 35;               //震动报警设置，0:关闭
+	optional CommonConfig speedingCfg = 36;              //超速设置
+	optional CommonConfig moveStateCfg = 37;             //运动状态设置，超过某一个速度判定为运动
+	optional CommonConfig inflexionAngle = 38;           //拐点补传角度
+	optional CommonSwitch voiceHintSwitch = 39;			 //声音提示开关
+	optional CommonConfig state = 40;                    //一键请求设备，0:睡眠，1:唤醒, 2:重启
+	optional ChangeIpPort viceIpPort = 50;				 //从属ip端口设置
+	optional CommonSwitch audioSwitch = 61;				 //声控录音开关
+	optional SetRtlsMode setRtlsMode = 62;               //实时定位上传模式
+	optional CommonConfig language = 63;                 //设备语言, 0:英文, 1:中文
+	optional UpdateLoopSwitchInfo LoopInfo = 65;  		 //设置定时开关机
+	optional SetLocMode setLocMode = 66;                 //设置定位模式
+	optional EmptyParam find_dev = 67;					 //查找设备
+	optional EmptyParam get_ext_power = 68;			     //查询外电电流 电压
+	optional CommonSwitch ledSwitch = 77;			     //led灯开关
+	optional CommonSwitch pulloutAlarmSwitch = 78;		 //防拆报警开关
+	optional UpdateCenterPhone updateCenterPhone = 79;   //中心号码
+	optional UpdateLooplocInfo updateLooplocInfo = 80;   //周期定位
+	optional CommonSwitch updateSetLogSign = 81;  		 //是否上报日志到服务器
+	optional CommonSwitch lowVoltageAlarmSwitch = 82; 	 //低电告警开关
+	optional CommonSwitch lightAlarmSwitch = 83;      	 //光感告警开关
+	optional CommonSwitch shutdownAlarmSwitch = 84;   	 //关机告警开关
+	optional CommonSwitch updateRemoteUpgrade = 86;   	 //下发升级指令
+	optional TrackingRequest trackingRequest = 87;       //追踪
+	optional SetDevText setDevText = 88;				 //文本下发
+	optional DeviceType deviceType = 89;                 //设备型号
+	optional CommonSwitch disConnSwitch = 90;			 //休眠是否断网开关
+	optional CommonConfig sleepLocationReport = 91;      //休眠定位上报间隔
+    optional StartRecord startRecord = 92;               //开启录音
+    optional StopRecord stopRecord = 93;                 //停止录音
+    optional EmptyParam query_location = 94;			 //点名模式下查询位置信息
+	optional MessageSend messagesend = 95;				 //设备发送短信
+    optional CommonConfig af_sleep_action = 96;          //设置设备休眠后的动作,0-发送心跳数据，1-发送定位数据，2-断网, 默认为0
+    optional CommonConfig repgps_when_still = 97;        //设置设备在唤醒状态下静止时是否上报定位数据，0：不上报，1：上报。默认0
+    optional CommonConfig if_carry_lbswifi = 98;         //设置设备上报的定位数据中，在定到位的状态下，是否带上基站及wifi等附带信息，0：不带，1：带上，默认为0
+    optional CommonConfig set_protocol = 99;             //设置当前协议：0：JT808/2011版本；1: JT808/2013版本；2: JT808/2019版本;3:康凯斯协议。默认为1
+    optional CommonConfig set_acc_alarm = 100;           //ACC上电报警开关，0:关闭，1:开启，默认为0（此开关不依赖于设防状态）
+    optional CommonConfig set_log_level = 101;           //设置LOG上报等级，0:关闭log上报;1:INFO;2:WARNING;3:ERROR;4:FATAL, 默认为1
+    optional SmsPass sms_pass = 102;                     //短信透传，服务器通过设备发送短信到指定的手机号
+    optional EmptyParam dyd_gracefully = 103;			 //断油电，结合速度传感器状态
+    optional EmptyParam recover_dyd = 104;			     //恢复油电
+    optional EmptyParam dyd_forcely = 105;				 //强制断油电
+	optional PhoneAlarmTimes phone_alarm = 106;			 //电话报警次数
+	optional AlarmNotifyWay alarm_notify_way = 107;      //不同类型报警通知方式
+	optional FenceShakeAlarm fence_shake_alarm = 108;    //设防及震动报警参数设置
+	optional CommonSwitch fence_mode = 109;				 //设防模式设置
+    optional PieceThrough piece_through = 110;				 
+
+	//kks begin
+    optional AlarmRespKKS alarm_resp = 201;              //康凯斯设备告警sos回复
+    optional AddrRespKKS gps_addr_resp = 202;            //康凯斯设备gps地址请求回复
+    optional AddrRespKKS lbs_addr_resp = 203;            //康凯斯设备lbs地址请求回复
+    optional KksSmsContent kks_sms_content = 210;		 //康凯斯短信指令
+   	//kks end
+
+   	//tq begin
+	optional AddrRespTq tq_gps_addr_resp = 301;
+	optional TqSmsContent tq_sms_content = 302;
+   	//tq end
+
+   	optional SmsContent sms_content = 20000;             //统一短信文本指令
+}
