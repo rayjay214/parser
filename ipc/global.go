@@ -13,6 +13,8 @@ const (
     Msg_0x0002 MsgID = 0x0002
     // 上报公网信息
     Msg_0x0003 MsgID = 0x0003
+    // 获取其他终端公网信息
+    Msg_0x0004 MsgID = 0x0004
     // 应答文本消息
     Msg_0x1300 MsgID = 0x1300
 
@@ -21,6 +23,8 @@ const (
     Msg_0x8001 MsgID = 0x8001
     // 文本消息下发
     Msg_0x8300 MsgID = 0x8300
+    // 返回终端公网信息
+    Msg_0x8004 MsgID = 0x8004
 )
 
 // 消息实体映射
@@ -34,15 +38,20 @@ var entityMapper = map[MsgID]func() Entity{
     Msg_0x0003: func() Entity {
         return new(Body_0x0003)
     },
-    /*
-    	Msg_0x1300: func() Entity {
-    		return new(Body_0x1300)
-    	},
-    	Msg_0x8001: func() Entity {
-    		return new(Body_0x8001)
-    	},
-    	Msg_0x8300: func() Entity {
-    		return new(Body_0x8300)
-    	},
-    */
+    Msg_0x0004: func() Entity {
+        return new(Body_0x0004)
+    },
+    Msg_0x1300: func() Entity {
+        return new(Body_0x1300)
+    },
+
+    Msg_0x8001: func() Entity {
+        return new(Body_0x8001)
+    },
+    Msg_0x8300: func() Entity {
+        return new(Body_0x8300)
+    },
+    Msg_0x8004: func() Entity {
+        return new(Body_0x0004)
+    },
 }
