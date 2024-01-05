@@ -52,6 +52,6 @@ var entityMapper = map[MsgID]func() Entity{
         return new(Body_0x8300)
     },
     Msg_0x8004: func() Entity {
-        return new(Body_0x0004)
+        return new(Body_0x8004)
     },
 }
