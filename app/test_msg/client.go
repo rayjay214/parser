@@ -3,34 +3,37 @@ package main
 import (
     //"encoding/hex"
     "fmt"
+    "github.com/rayjay214/parser/ipc"
     "net"
-    "github.com/rayjay214/parser/jt808"
-    "sync/atomic"
     "time"
 )
 
-var g_seqno uint32 = 0
+func sendMsg(conn *net.TCPConn) {
+    var msg ipc.Message
+    msg.Header.Prefix = 0x8686
+    msg.Header.MsgId = ipc.Msg_0x0003
+    msg.Header.Seq = 11
+    msg.Header.UidLen = 15
+    msg.Header.Uid = "123456789111111"
+    msg.Body = new(ipc.Body_0x0003)
+    body0003 := msg.Body.(*ipc.Body_0x0003)
+    body0003.Ip = "192.168.1.2"
+    body0003.Port = 1234
 
-func nextID() uint16 {
-    var id uint32
-    for {
-        id = atomic.LoadUint32(&g_seqno)
-        if id == 0xff {
-            if atomic.CompareAndSwapUint32(&g_seqno, id, 1) {
-                id = 1
-                break
-            }
-        } else if atomic.CompareAndSwapUint32(&g_seqno, id, id+1) {
-            id += 1
-            break
-        }
+    data, _ := msg.Encode()
+    fmt.Printf("hex %x\n", ipc.GetHex(data))
+    conn.Write(data)
+
+    time.Sleep(1 * time.Second)
+    buf := make([]byte, 128)
+    _, err := conn.Read(buf[:])
+    if err == nil {
+        fmt.Printf(string(buf))
     }
-    return uint16(id)
 }
 
 func main() {
-
-    tcpAddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:8881")
+    tcpAddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:8882")
     if err != nil {
         panic(err)
     }
@@ -41,41 +44,8 @@ func main() {
         return
     }
 
+    sendMsg(conn)
+
     defer conn.Close()
 
-    for {
-        // 终端鉴权
-        var imei uint64 = 12345123451
-        var authkey = "12345123451"
-        message := jt808.Message{
-            Header: jt808.Header{
-                Imei:        imei,
-                MsgSerialNo: nextID(),
-            },
-            Body: &jt808.T808_0x0102{
-                AuthKey: authkey,
-            },
-        }
-        data, err := message.Encode()
-
-        if _, err = conn.Write(data); err != nil {
-            fmt.Printf("write failed , err : %v\n", err)
-            break
-        }
-
-        var p jt808.Protocol
-        codec, err := p.NewCodec(conn)
-        if err != nil {
-            panic(err)
-        }
-        msg, err := codec.Receive()
-        resp := msg.(jt808.Message)
-
-        if resp.Header.MsgID == jt808.MsgT808_0x8001 {
-            body := resp.Body.(*jt808.T808_0x8001)
-            fmt.Println(body.Result)
-        }
-
-        time.Sleep(time.Duration(10) * time.Second)
-    }
 }

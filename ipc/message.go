@@ -18,7 +18,7 @@ func (message *Message) Encode() ([]byte, error) {
     }
 
     message.Header.MsgId = message.Body.MsgID()
-    message.Header.MsgLen = uint16(len(body))
+    message.Header.MsgLen = uint16(len(body) + len(message.Header.Uid))
 
     header, err := message.Header.Encode()
     if err != nil {

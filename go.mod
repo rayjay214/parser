@@ -3,6 +3,7 @@ module github.com/rayjay214/parser
 go 1.20
 
 require (
+	gitee.com/coco/go808 v0.0.0-20210528091859-5c885155315d
 	github.com/funny/link v0.0.0-20190805113223-98708916287b
 	github.com/gocql/gocql v1.6.0
 	github.com/golang/protobuf v1.5.3
