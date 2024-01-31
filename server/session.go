@@ -3,12 +3,14 @@ package server
 import (
     "crypto/rsa"
     "github.com/funny/link"
+    "github.com/rayjay214/parser/common"
     "github.com/rayjay214/parser/jt808"
     log "github.com/sirupsen/logrus"
     "runtime/debug"
     "strconv"
     "sync"
     "sync/atomic"
+    "time"
 )
 
 // 请求上下文
@@ -21,14 +23,14 @@ type requestContext struct {
 // 终端会话
 type Session struct {
     next    uint32
-    iccID   uint64
+    imei    uint64
     server  *Server
     session *link.Session
 
     mux      sync.Mutex
     requests []requestContext
 
-    UserData interface{}
+    UserData map[string]interface{}
 }
 
 // 创建Session
@@ -41,7 +43,7 @@ func newSession(server *Server, sess *link.Session) *Session {
 
 // 获取ID
 func (session *Session) ID() uint64 {
-    return session.session.ID()
+    return session.imei
 }
 
 // 获取服务实例
@@ -73,10 +75,13 @@ func (session *Session) Send(entity jt808.Entity) (uint16, error) {
         Body: entity,
         Header: jt808.Header{
             MsgID:       entity.MsgID(),
-            Imei:        atomic.LoadUint64(&session.iccID),
+            Imei:        atomic.LoadUint64(&session.imei),
             MsgSerialNo: session.nextID(),
         },
     }
+
+    data, _ := message.Encode()
+    log.Printf("send cmd %x", common.GetHex(data))
 
     err := session.session.Send(message)
     if err != nil {
@@ -95,12 +100,54 @@ func (session *Session) Reply(msg *jt808.Message, result jt808.Result) (uint16, 
     return session.Send(&entity)
 }
 
-// 回复消息
+// 回复注册
 func (session *Session) ReplyRegister(msg *jt808.Message) (uint16, error) {
     entity := jt808.T808_0x8100{
         MsgSerialNo: msg.Header.MsgSerialNo,
         AuthKey:     strconv.FormatUint(msg.Header.Imei, 10),
         Result:      0,
+    }
+    return session.Send(&entity)
+}
+
+// 回复短录音
+func (session *Session) ReplyShortRecord(pkgNo byte) (uint16, error) {
+    entity := jt808.T808_0x8117{
+        PkgNo:     pkgNo,
+        SessionId: "123454678",
+    }
+    return session.Send(&entity)
+}
+
+// 回复校时
+func (session *Session) ReplyTime() (uint16, error) {
+    now := time.Now()
+    entity := jt808.T808_0x8109{
+        Year:   uint16(now.Year()),
+        Month:  byte(now.Month()),
+        Day:    byte(now.Day()),
+        Hour:   byte(now.Hour()),
+        Minute: byte(now.Minute()),
+        Second: byte(now.Second()),
+        Result: 0,
+    }
+    return session.Send(&entity)
+}
+
+// 发送文本指令
+func (session *Session) SendCmd(content string) (uint16, error) {
+    entity := jt808.T808_0x8300{
+        Flag: 0,
+        Text: content,
+    }
+    return session.Send(&entity)
+}
+
+// 开启短录音
+func (session *Session) OpenShortRecord(seconds uint64) (uint16, error) {
+    entity := jt808.T808_0x8116{
+        RecordTime: byte(seconds),
+        SessionId:  "12345678",
     }
     return session.Send(&entity)
 }
@@ -148,7 +195,7 @@ func (session *Session) nextID() uint16 {
 // 消息接收事件
 func (session *Session) message(message *jt808.Message) {
     if message.Header.Imei > 0 {
-        old := atomic.LoadUint64(&session.iccID)
+        old := atomic.LoadUint64(&session.imei)
         if old != 0 && old != message.Header.Imei {
             log.WithFields(log.Fields{
                 "id":  session.ID(),
@@ -156,7 +203,7 @@ func (session *Session) message(message *jt808.Message) {
                 "new": message.Header.Imei,
             }).Warn("[JT/T 808] terminal Imei is inconsistent")
         }
-        atomic.StoreUint64(&session.iccID, message.Header.Imei)
+        atomic.StoreUint64(&session.imei, message.Header.Imei)
     }
 
     var msgSerialNo uint16

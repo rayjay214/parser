@@ -97,11 +97,6 @@ func (server *Server) GetSession(id uint64) (*Session, bool) {
     return session, true
 }
 
-// 获取平台私钥
-func (server *Server) GetPrivateKey() *rsa.PrivateKey {
-    return server.privateKey
-}
-
 // 广播消息
 func (server *Server) Broadcast(entity jt808.Entity) int {
     server.mutex.Lock()
@@ -147,7 +142,7 @@ func (server *Server) handleClose(session *Session) {
 
     log.WithFields(log.Fields{
         "id": session.ID(),
-    }).Debug("[JT/T 808] session closed")
+    }).Info("[JT/T 808] session closed")
 }
 
 // 处理读超时
@@ -165,7 +160,7 @@ func (server *Server) handleReadTimeout(key string) {
 
     log.WithFields(log.Fields{
         "id": sessionID,
-    }).Debug("[JT/T 808] session read timeout")
+    }).Info("[JT/T 808] session read timeout")
 }
 
 // 分派消息

@@ -24,6 +24,19 @@ func (entity *T808_0x8109) Encode() ([]byte, error) {
     writer := common.NewWriter()
 
     //todo
+    writer.WriteUint16(entity.Year)
+
+    writer.WriteByte(entity.Month)
+
+    writer.WriteByte(entity.Day)
+
+    writer.WriteByte(entity.Hour)
+
+    writer.WriteByte(entity.Minute)
+
+    writer.WriteByte(entity.Second)
+
+    writer.WriteByte(entity.Result)
 
     return writer.Bytes(), nil
 }

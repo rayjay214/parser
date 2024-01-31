@@ -19,15 +19,19 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
         "id": sess.ID(),
     }).Debug("[JT/T 808] new session created")
 
+    var session *Session
+
     // 创建Session
-    session := newSession(handler.server, sess)
-    handler.server.mutex.Lock()
-    handler.server.sessions[sess.ID()] = session
-    handler.server.mutex.Unlock()
-    handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
-    sess.AddCloseCallback(nil, nil, func() {
-        handler.server.handleClose(session)
-    })
+    /*
+       session := newSession(handler.server, sess)
+       handler.server.mutex.Lock()
+       handler.server.sessions[sess.ID()] = session
+       handler.server.mutex.Unlock()
+       handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
+       sess.AddCloseCallback(nil, nil, func() {
+           handler.server.handleClose(session)
+       })
+    */
 
     for {
         // 接收消息
@@ -40,14 +44,27 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
         // 分发消息
         message := msg.(jt808.Message)
         if message.Body == nil || reflect.ValueOf(message.Body).IsNil() {
-            session.Reply(&message, jt808.T808_0x8001ResultUnsupported)
+            if session != nil {
+                session.Reply(&message, jt808.T808_0x8001ResultUnsupported)
+            }
             continue
         }
 
-        if !handler.autoMergePacket || !message.Header.Property.IsEnablePacket() {
-            session.message(&message)
-            handler.server.dispatchMessage(session, &message)
-            continue
+        _, ok := handler.server.sessions[message.Header.Imei]
+        if !ok {
+            session = newSession(handler.server, sess)
+            handler.server.mutex.Lock()
+            handler.server.sessions[message.Header.Imei] = session
+            session.imei = message.Header.Imei
+            session.UserData = make(map[string]interface{}, 8)
+            handler.server.mutex.Unlock()
+            handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
+            sess.AddCloseCallback(nil, nil, func() {
+                handler.server.handleClose(session)
+            })
         }
+
+        //session.message(&message)
+        handler.server.dispatchMessage(session, &message)
     }
 }
