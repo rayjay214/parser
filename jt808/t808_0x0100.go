@@ -2,7 +2,6 @@ package jt808
 
 import (
     "github.com/rayjay214/parser/common"
-    "github.com/rayjay214/parser/jt808/errors"
 )
 
 // 终端注册
@@ -57,10 +56,13 @@ func (entity *T808_0x0100) Encode() ([]byte, error) {
     return writer.Bytes(), nil
 }
 
+//兼容2011
 func (entity *T808_0x0100) Decode(data []byte) (int, error) {
-    if len(data) < 37 {
-        return 0, errors.ErrInvalidBody
-    }
+    /*
+       if len(data) < 37 {
+           return 0, errors.ErrInvalidBody
+       }
+    */
     reader := common.NewReader(data)
 
     // 读取省份ID
@@ -83,33 +85,65 @@ func (entity *T808_0x0100) Decode(data []byte) (int, error) {
     }
     entity.ManufactureID = common.BytesToString(manufacturer[:])
 
-    // 读取终端型号
-    model, err := reader.Read(20)
-    if err != nil {
-        return 0, err
-    }
-    entity.Model = common.BytesToString(model[:])
-
-    // 读取终端ID
-    terminalID, err := reader.Read(7)
-    if err != nil {
-        return 0, err
-    }
-    entity.TerminalID = common.BytesToString(terminalID[:])
-
-    // 读取车牌颜色
-    entity.PlateColor, err = reader.ReadByte()
-    if err != nil {
-        return 0, err
-    }
-
-    // 读取车辆标识
-    if reader.Len() > 0 {
-        licenseNo, err := reader.ReadString()
+    if len(data) < 37 {
+        // 读取终端型号
+        model, err := reader.Read(8)
         if err != nil {
             return 0, err
         }
-        entity.LicenseNo = licenseNo
+        entity.Model = common.BytesToString(model[:])
+
+        // 读取终端ID
+        terminalID, err := reader.Read(7)
+        if err != nil {
+            return 0, err
+        }
+        entity.TerminalID = common.BytesToString(terminalID[:])
+
+        // 读取车牌颜色
+        entity.PlateColor, err = reader.ReadByte()
+        if err != nil {
+            return 0, err
+        }
+
+        // 读取车辆标识
+        if reader.Len() > 0 {
+            licenseNo, err := reader.ReadString()
+            if err != nil {
+                return 0, err
+            }
+            entity.LicenseNo = licenseNo
+        }
+    } else {
+        // 读取终端型号
+        model, err := reader.Read(20)
+        if err != nil {
+            return 0, err
+        }
+        entity.Model = common.BytesToString(model[:])
+
+        // 读取终端ID
+        terminalID, err := reader.Read(7)
+        if err != nil {
+            return 0, err
+        }
+        entity.TerminalID = common.BytesToString(terminalID[:])
+
+        // 读取车牌颜色
+        entity.PlateColor, err = reader.ReadByte()
+        if err != nil {
+            return 0, err
+        }
+
+        // 读取车辆标识
+        if reader.Len() > 0 {
+            licenseNo, err := reader.ReadString()
+            if err != nil {
+                return 0, err
+            }
+            entity.LicenseNo = licenseNo
+        }
     }
+
     return len(data) - reader.Len(), nil
 }

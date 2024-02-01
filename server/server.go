@@ -4,7 +4,7 @@ import (
     "crypto/rsa"
     "errors"
     "fmt"
-    "github.com/funny/link"
+    "github.com/rayjay214/link"
     "github.com/rayjay214/parser/jt808"
     log "github.com/sirupsen/logrus"
     "net"

@@ -1,7 +1,7 @@
 package server
 
 import (
-    "github.com/funny/link"
+    "github.com/rayjay214/link"
     "github.com/rayjay214/parser/jt808"
     log "github.com/sirupsen/logrus"
     "reflect"
@@ -17,7 +17,7 @@ type sessionHandler struct {
 func (handler sessionHandler) HandleSession(sess *link.Session) {
     log.WithFields(log.Fields{
         "id": sess.ID(),
-    }).Debug("[JT/T 808] new session created")
+    }).Info("[JT/T 808] new session created")
 
     var session *Session
 
@@ -37,6 +37,7 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
         // 接收消息
         msg, err := sess.Receive()
         if err != nil {
+            log.Warnf("receive err %v", err)
             sess.Close()
             break
         }
@@ -50,13 +51,15 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
             continue
         }
 
-        _, ok := handler.server.sessions[message.Header.Imei]
-        if !ok {
+        //_, ok := handler.server.sessions[message.Header.Imei]
+        if message.Header.MsgID == jt808.MsgT808_0x0100 || message.Header.MsgID == jt808.MsgT808_0x0102 {
             session = newSession(handler.server, sess)
             handler.server.mutex.Lock()
+            delete(handler.server.sessions, message.Header.Imei)
             handler.server.sessions[message.Header.Imei] = session
             session.imei = message.Header.Imei
             session.UserData = make(map[string]interface{}, 8)
+            session.Protocol = 1 //2011
             handler.server.mutex.Unlock()
             handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
             sess.AddCloseCallback(nil, nil, func() {

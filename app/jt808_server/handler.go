@@ -9,6 +9,7 @@ import (
     log "github.com/sirupsen/logrus"
     "io/ioutil"
     "os"
+    "time"
 )
 
 func handle0100(session *server.Session, message *jt808.Message) {
@@ -34,6 +35,7 @@ func handle0002(session *server.Session, message *jt808.Message) {
 
 func handle0808(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0808)
+    session.Protocol = 2 //2013
     log.Infof("handle 0808 %v", entity)
 }
 
@@ -102,28 +104,32 @@ func handle1300(session *server.Session, message *jt808.Message) {
 
 func handle0116(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0116)
-    session.UserData["schedule"] = 0
-    session.UserData["short_record_writer"] = common.NewWriter()
+    session.UserData["short_record"] = ShortRecord{
+        Imei:      session.ID(),
+        Writer:    common.NewWriter(),
+        StartTime: time.Now(),
+        Schedule:  0.0,
+    }
     log.Infof("handle 0116 %v", entity)
 }
 
 func handle0117(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0117)
-    session.UserData["schedule"] = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
-    log.Infof("schedule is %v", session.UserData["schedule"])
-    writer, ok := session.UserData["short_record_writer"].(common.Writer)
+
+    shortRecord, ok := session.UserData["short_record"].(ShortRecord)
     if ok {
-        log.Infof("append pkt %v", entity.PkgNo)
+        shortRecord.Schedule = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
+        log.Infof("schedule is %.2f", shortRecord.Schedule)
         buffer, _ := ioutil.ReadAll(entity.Packet)
-        writer.Write(buffer)
-        log.Infof("buffer len %v", len(writer.Bytes()))
+        shortRecord.Writer.Write(buffer)
     }
 
     if entity.PkgNo == entity.PkgSize {
-        file, _ := os.Create("aa.amr")
+        fileName := fmt.Sprintf("record/%v_%v.amr", shortRecord.Imei, shortRecord.StartTime.Unix())
+        file, _ := os.Create(fileName)
         defer file.Close()
-        leng, err := file.Write(writer.Bytes())
-        log.Infof("%v:%v", leng, err)
+        file.Write(shortRecord.Writer.Bytes())
+        shortRecord.Writer.Reset()
     }
 
     data, _ := message.Encode()
@@ -133,6 +139,104 @@ func handle0117(session *server.Session, message *jt808.Message) {
 
 func handle0109(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0109)
-    session.ReplyTime()
     log.Infof("handle 0109 %v", entity)
+    session.ReplyTime()
+}
+
+func handle0003(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0003)
+    log.Infof("handle 0109 %v", entity)
+    session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle0105(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0105)
+    session.Reply8125()
+    log.Infof("handle 0105 %v", entity)
+}
+
+func handle0108(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0108)
+    log.Infof("handle 0108 %v", entity)
+    session.Reply8108()
+}
+
+func handle0210(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0210)
+    log.Infof("handle 0210 %v", entity)
+    session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle0115(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0115)
+    log.Infof("handle 0115 %v", entity)
+    delete(session.UserData, "short_record")
+    //session.Reply8115(entity.SessionId)
+}
+
+func handle0120(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0120)
+    log.Infof("handle 0120 %v", entity)
+    session.UserData["vor_record"] = &VorRecord{
+        Imei:        session.ID(),
+        Writer:      common.NewWriter(),
+        StartTime:   time.Now(),
+        EndTime:     time.Now(),
+        FirstPacket: true,
+        PkgCnt:      0,
+    }
+    session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle0118(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0118)
+    log.Infof("body is %v", entity)
+    data, _ := message.Encode()
+    log.Infof("0118 raw msg %x", common.GetHex(data))
+    currBeginTime := entity.Time
+
+    vorRecord, ok := session.UserData["vor_record"].(*VorRecord)
+    if ok {
+        if vorRecord.FirstPacket {
+            vorRecord.StartTime = entity.Time
+            vorRecord.EndTime = vorRecord.StartTime.Add(time.Second * 10)
+            vorRecord.FirstPacket = false
+        }
+        if entity.PkgNo == 1 { //组包
+            if currBeginTime.Sub(vorRecord.EndTime).Seconds() < 3 &&
+                currBeginTime.Sub(vorRecord.StartTime).Seconds() > 59 &&
+                vorRecord.PkgCnt < 47 {
+                vorRecord.EndTime = currBeginTime.Add(time.Second * 10)
+                buffer, _ := ioutil.ReadAll(entity.Packet)
+                vorRecord.Writer.Write(buffer)
+                vorRecord.PkgCnt += 1
+            } else { //上报当前缓存录音
+                fileName := fmt.Sprintf("vrecord/%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
+                file, _ := os.Create(fileName)
+                defer file.Close()
+                file.Write(vorRecord.Writer.Bytes())
+                vorRecord.Writer.Reset()
+                //重新初始化
+                vorRecord.PkgCnt = 0
+                vorRecord.FirstPacket = true
+            }
+        } else {
+            buffer, _ := ioutil.ReadAll(entity.Packet)
+            vorRecord.Writer.Write(buffer)
+            vorRecord.PkgCnt += 1
+        }
+    }
+
+    session.ReplyVorRecord(entity)
+}
+
+func handle0119(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0119)
+    log.Infof("handle 0119 %v", entity)
+    session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle0001(session *server.Session, message *jt808.Message) {
+    entity := message.Body.(*jt808.T808_0x0001)
+    log.Infof("handle 0001 %v", entity)
 }

@@ -7,6 +7,7 @@ import (
 // 终端应答
 type T808_0x0115 struct {
     CancelResult byte
+    SessionId    string
 }
 
 func (entity *T808_0x0115) MsgID() MsgID {
@@ -16,7 +17,9 @@ func (entity *T808_0x0115) MsgID() MsgID {
 func (entity *T808_0x0115) Encode() ([]byte, error) {
     writer := common.NewWriter()
 
-    //todo
+    writer.WriteByte(entity.CancelResult)
+
+    writer.WriteString(entity.SessionId)
 
     return writer.Bytes(), nil
 }
@@ -27,6 +30,11 @@ func (entity *T808_0x0115) Decode(data []byte) (int, error) {
     var err error
 
     entity.CancelResult, err = reader.ReadByte()
+    if err != nil {
+        return 0, err
+    }
+
+    entity.SessionId, err = reader.ReadString(8)
     if err != nil {
         return 0, err
     }

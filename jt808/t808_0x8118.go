@@ -7,8 +7,9 @@ import (
 
 // 终端应答
 type T808_0x8118 struct {
-    PkgNo byte
-    Time  time.Time
+    PkgNo     byte
+    SessionId string
+    Time      time.Time
 }
 
 func (entity *T808_0x8118) MsgID() MsgID {
@@ -18,7 +19,11 @@ func (entity *T808_0x8118) MsgID() MsgID {
 func (entity *T808_0x8118) Encode() ([]byte, error) {
     writer := common.NewWriter()
 
-    //todo
+    writer.WriteByte(entity.PkgNo)
+
+    writer.WriteString(entity.SessionId)
+
+    writer.WriteBcdTime(entity.Time)
 
     return writer.Bytes(), nil
 }

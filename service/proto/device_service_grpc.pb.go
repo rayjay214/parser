@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type DeviceServiceClient interface {
 	SendCmd(ctx context.Context, in *SendCmdRequest, opts ...grpc.CallOption) (*SendCmdReply, error)
 	OpenShortRecord(ctx context.Context, in *OpenShortRecordRequest, opts ...grpc.CallOption) (*CommonReply, error)
+	VorRecordSwitch(ctx context.Context, in *VorRecordSwitchRequest, opts ...grpc.CallOption) (*CommonReply, error)
 }
 
 type deviceServiceClient struct {
@@ -52,12 +53,22 @@ func (c *deviceServiceClient) OpenShortRecord(ctx context.Context, in *OpenShort
 	return out, nil
 }
 
+func (c *deviceServiceClient) VorRecordSwitch(ctx context.Context, in *VorRecordSwitchRequest, opts ...grpc.CallOption) (*CommonReply, error) {
+	out := new(CommonReply)
+	err := c.cc.Invoke(ctx, "/service.DeviceService/VorRecordSwitch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DeviceServiceServer is the server API for DeviceService service.
 // All implementations must embed UnimplementedDeviceServiceServer
 // for forward compatibility
 type DeviceServiceServer interface {
 	SendCmd(context.Context, *SendCmdRequest) (*SendCmdReply, error)
 	OpenShortRecord(context.Context, *OpenShortRecordRequest) (*CommonReply, error)
+	VorRecordSwitch(context.Context, *VorRecordSwitchRequest) (*CommonReply, error)
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedDeviceServiceServer) SendCmd(context.Context, *SendCmdRequest
 }
 func (UnimplementedDeviceServiceServer) OpenShortRecord(context.Context, *OpenShortRecordRequest) (*CommonReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenShortRecord not implemented")
+}
+func (UnimplementedDeviceServiceServer) VorRecordSwitch(context.Context, *VorRecordSwitchRequest) (*CommonReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VorRecordSwitch not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 
@@ -120,6 +134,24 @@ func _DeviceService_OpenShortRecord_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceService_VorRecordSwitch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VorRecordSwitchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).VorRecordSwitch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.DeviceService/VorRecordSwitch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).VorRecordSwitch(ctx, req.(*VorRecordSwitchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DeviceService_ServiceDesc is the grpc.ServiceDesc for DeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OpenShortRecord",
 			Handler:    _DeviceService_OpenShortRecord_Handler,
+		},
+		{
+			MethodName: "VorRecordSwitch",
+			Handler:    _DeviceService_VorRecordSwitch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,7 +2,7 @@ package server
 
 import (
     "crypto/rsa"
-    "github.com/funny/link"
+    "github.com/rayjay214/link"
     "github.com/rayjay214/parser/common"
     "github.com/rayjay214/parser/jt808"
     log "github.com/sirupsen/logrus"
@@ -29,6 +29,7 @@ type Session struct {
 
     mux      sync.Mutex
     requests []requestContext
+    Protocol uint32
 
     UserData map[string]interface{}
 }
@@ -119,6 +120,16 @@ func (session *Session) ReplyShortRecord(pkgNo byte) (uint16, error) {
     return session.Send(&entity)
 }
 
+// 回复短录音
+func (session *Session) ReplyVorRecord(body *jt808.T808_0x0118) (uint16, error) {
+    entity := jt808.T808_0x8118{
+        PkgNo:     body.PkgNo,
+        SessionId: "123454678",
+        Time:      body.Time,
+    }
+    return session.Send(&entity)
+}
+
 // 回复校时
 func (session *Session) ReplyTime() (uint16, error) {
     now := time.Now()
@@ -130,6 +141,23 @@ func (session *Session) ReplyTime() (uint16, error) {
         Minute: byte(now.Minute()),
         Second: byte(now.Second()),
         Result: 0,
+    }
+    return session.Send(&entity)
+}
+
+func (session *Session) Reply8108() (uint16, error) {
+    entity := jt808.T808_0x8108{}
+    return session.Send(&entity)
+}
+
+func (session *Session) Reply8125() (uint16, error) {
+    entity := jt808.T808_0x8125{}
+    return session.Send(&entity)
+}
+
+func (session *Session) Reply8115(sessionId string) (uint16, error) {
+    entity := jt808.T808_0x8115{
+        SessionId: sessionId,
     }
     return session.Send(&entity)
 }
@@ -149,6 +177,26 @@ func (session *Session) OpenShortRecord(seconds uint64) (uint16, error) {
         RecordTime: byte(seconds),
         SessionId:  "12345678",
     }
+    return session.Send(&entity)
+}
+
+// 声控录音
+func (session *Session) VorRecordSwitch(switchs int32) (uint16, error) {
+    var entity jt808.T808_0x8103
+    if session.Protocol == 1 {
+        entity = jt808.T808_0x8103{
+            Params: []jt808.Param{
+                new(jt808.Param).SetByte(0x0061, byte(switchs)),
+            },
+        }
+    } else {
+        entity = jt808.T808_0x8103{
+            Params: []jt808.Param{
+                new(jt808.Param).SetByte(0xf114, byte(switchs)),
+            },
+        }
+    }
+
     return session.Send(&entity)
 }
 

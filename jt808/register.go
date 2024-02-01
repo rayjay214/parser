@@ -140,6 +140,8 @@ const (
     MsgT808_0x8109 MsgID = 0x8109
     // 请求周期定位
     MsgT808_0x0110 MsgID = 0x0110
+    // 声控开始
+    MsgT808_0x0120 MsgID = 0x0120
     // 请求周期定位应答
     MsgT808_0x8110 MsgID = 0x8110
     // 上传模式到服务器
@@ -500,9 +502,9 @@ var entityMapper = map[uint16]func() Entity{
     uint16(MsgT808_0x0113): func() Entity {
         return new(T808_0x0113)
     },
-    //uint16(MsgT808_0x6006): func() Entity {
-    //	return new(T808_0x6006)
-    //},
+    uint16(MsgT808_0x0120): func() Entity {
+        return new(T808_0x0120)
+    },
 }
 
 // 类型注册

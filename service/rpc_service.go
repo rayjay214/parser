@@ -48,6 +48,22 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShor
     return &resp, nil
 }
 
+func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecordSwitchRequest) (*proto.CommonReply, error) {
+    var resp proto.CommonReply
+    resp.Message = "ok"
+    session, ok := gJt808Server.GetSession(req.Imei)
+
+    if !ok {
+        log.Errorf("can't find device %v", req.Imei)
+        resp.Message = "can't find device"
+        return &resp, errors.New("can't find device")
+    }
+
+    session.VorRecordSwitch(req.Switch)
+
+    return &resp, nil
+}
+
 func StartRpc(tcpServer *server.Server) {
     gJt808Server = tcpServer
     lis, err := net.Listen("tcp", ":40051")

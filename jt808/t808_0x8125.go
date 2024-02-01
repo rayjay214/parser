@@ -1,6 +1,5 @@
 package jt808
 
-// 请求同步时间
 type T808_0x8125 struct {
 }
 

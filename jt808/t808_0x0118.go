@@ -1,15 +1,20 @@
 package jt808
 
 import (
+    "bytes"
     "github.com/rayjay214/parser/common"
+    "io"
+    "io/ioutil"
     "time"
 )
 
 // 终端应答
 type T808_0x0118 struct {
-    PkgSize byte
-    PkgNo   byte
-    Time    time.Time
+    PkgSize   byte
+    PkgNo     byte
+    SessionId string
+    Time      time.Time
+    Packet    io.Reader //录音数据包
 }
 
 func (entity *T808_0x0118) MsgID() MsgID {
@@ -19,7 +24,21 @@ func (entity *T808_0x0118) MsgID() MsgID {
 func (entity *T808_0x0118) Encode() ([]byte, error) {
     writer := common.NewWriter()
 
-    //todo
+    writer.WriteByte(entity.PkgSize)
+
+    writer.WriteByte(entity.PkgNo)
+
+    writer.WriteString(entity.SessionId)
+
+    writer.WriteBcdTime(entity.Time)
+
+    if entity.Packet != nil {
+        data, err := ioutil.ReadAll(entity.Packet)
+        if err != nil {
+            return nil, err
+        }
+        writer.Write(data)
+    }
 
     return writer.Bytes(), nil
 }
@@ -39,7 +58,7 @@ func (entity *T808_0x0118) Decode(data []byte) (int, error) {
         return 0, err
     }
 
-    _, err = reader.ReadString(8)
+    entity.SessionId, err = reader.ReadString(8)
     if err != nil {
         return 0, err
     }
@@ -50,4 +69,25 @@ func (entity *T808_0x0118) Decode(data []byte) (int, error) {
     }
 
     return len(data) - reader.Len(), nil
+}
+
+func (entity *T808_0x0118) DecodePacket(data []byte) error {
+    n, err := entity.Decode(data)
+    if err != nil {
+        return err
+    }
+    entity.Packet = bytes.NewReader(data[n:])
+    return nil
+}
+
+func (entity *T808_0x0118) GetTag() uint32 {
+    return 0
+}
+
+func (entity *T808_0x0118) GetReader() io.Reader {
+    return entity.Packet
+}
+
+func (entity *T808_0x0118) SetReader(reader io.Reader) {
+    entity.Packet = reader
 }
