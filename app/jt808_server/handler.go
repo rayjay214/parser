@@ -116,6 +116,15 @@ func handle0116(session *server.Session, message *jt808.Message) {
 func handle0117(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0117)
 
+    /*
+       这里Encode的时候，会把packet的内容写走
+       log.Infof("body is %v", entity)
+       d, _ := message.Encode()
+       log.Infof("0117 raw msg %x", common.GetHex(d))
+       bdata, _ := entity.Encode()
+       log.Infof("0117 raw body %x", common.GetHex(bdata))
+    */
+
     shortRecord, ok := session.UserData["short_record"].(ShortRecord)
     if ok {
         shortRecord.Schedule = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
@@ -190,42 +199,58 @@ func handle0120(session *server.Session, message *jt808.Message) {
 
 func handle0118(session *server.Session, message *jt808.Message) {
     entity := message.Body.(*jt808.T808_0x0118)
-    log.Infof("body is %v", entity)
-    data, _ := message.Encode()
-    log.Infof("0118 raw msg %x", common.GetHex(data))
+
     currBeginTime := entity.Time
 
     vorRecord, ok := session.UserData["vor_record"].(*VorRecord)
-    if ok {
-        if vorRecord.FirstPacket {
-            vorRecord.StartTime = entity.Time
-            vorRecord.EndTime = vorRecord.StartTime.Add(time.Second * 10)
-            vorRecord.FirstPacket = false
+    if !ok {
+        session.UserData["vor_record"] = &VorRecord{
+            Imei:        session.ID(),
+            Writer:      common.NewWriter(),
+            StartTime:   time.Now(),
+            EndTime:     time.Now(),
+            FirstPacket: true,
+            PkgCnt:      0,
         }
-        if entity.PkgNo == 1 { //组包
-            if currBeginTime.Sub(vorRecord.EndTime).Seconds() < 3 &&
-                currBeginTime.Sub(vorRecord.StartTime).Seconds() > 59 &&
-                vorRecord.PkgCnt < 47 {
-                vorRecord.EndTime = currBeginTime.Add(time.Second * 10)
-                buffer, _ := ioutil.ReadAll(entity.Packet)
-                vorRecord.Writer.Write(buffer)
-                vorRecord.PkgCnt += 1
-            } else { //上报当前缓存录音
-                fileName := fmt.Sprintf("vrecord/%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
-                file, _ := os.Create(fileName)
-                defer file.Close()
-                file.Write(vorRecord.Writer.Bytes())
-                vorRecord.Writer.Reset()
-                //重新初始化
-                vorRecord.PkgCnt = 0
-                vorRecord.FirstPacket = true
-            }
-        } else {
-            buffer, _ := ioutil.ReadAll(entity.Packet)
+        vorRecord, _ = session.UserData["vor_record"].(*VorRecord)
+    }
+
+    if vorRecord.FirstPacket {
+        vorRecord.StartTime = entity.Time
+        vorRecord.EndTime = vorRecord.StartTime.Add(time.Second * 10)
+        vorRecord.FirstPacket = false
+    }
+    if entity.PkgNo == 1 { //组包
+        if currBeginTime.Sub(vorRecord.EndTime).Seconds() < 3 &&
+            currBeginTime.Sub(vorRecord.StartTime).Seconds() < 59 &&
+            vorRecord.PkgCnt < 47 {
+            vorRecord.EndTime = currBeginTime.Add(time.Second * 10)
+            buffer, err := ioutil.ReadAll(entity.Packet)
+            log.Infof("rayjay buffer len %v, err is %v", len(buffer), err)
+            vorRecord.Writer.Write(buffer)
+            vorRecord.PkgCnt += 1
+        } else { //上报当前缓存录音
+            fileName := fmt.Sprintf("vrecord/%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
+            log.Infof("upload record %v", fileName)
+            file, _ := os.Create(fileName)
+            defer file.Close()
+            file.Write(vorRecord.Writer.Bytes())
+            vorRecord.Writer.Reset()
+            //重新初始化并写入第一个包
+            vorRecord.PkgCnt = 0
+            vorRecord.FirstPacket = true
+            buffer, err := ioutil.ReadAll(entity.Packet)
+            log.Infof("rayjay buffer len %v, err is %v", len(buffer), err)
             vorRecord.Writer.Write(buffer)
             vorRecord.PkgCnt += 1
         }
+    } else {
+        buffer, err := ioutil.ReadAll(entity.Packet)
+        log.Infof("rayjay buffer len %v, err is %v", len(buffer), err)
+        vorRecord.Writer.Write(buffer)
+        vorRecord.PkgCnt += 1
     }
+    log.Infof("vor %v", *vorRecord)
 
     session.ReplyVorRecord(entity)
 }
