@@ -4,6 +4,7 @@ import (
     "github.com/rayjay214/parser/jt808"
     "github.com/rayjay214/parser/server"
     "github.com/rayjay214/parser/service"
+    "github.com/rayjay214/parser/storage"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
     server.AddHandler(jt808.MsgT808_0x0118, handle0118)
     server.AddHandler(jt808.MsgT808_0x0119, handle0119)
     server.AddHandler(jt808.MsgT808_0x0001, handle0001)
+
+    storage.InitCass()
 
     go service.StartRpc(server)
     server.Run("tcp", 8808)

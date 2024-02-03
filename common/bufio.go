@@ -63,6 +63,13 @@ func (writer *Writer) WriteUint32(n uint32) *Writer {
     return writer
 }
 
+func (writer *Writer) WriteUint64(n uint64) *Writer {
+    var buf [8]byte
+    binary.BigEndian.PutUint64(buf[:], n)
+    writer.b.Write(buf[:])
+    return writer
+}
+
 func (writer *Writer) WriteBcdTime(t time.Time) *Writer {
     writer.b.Write(toBCDTime(t))
     return writer

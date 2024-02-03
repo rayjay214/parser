@@ -36,6 +36,7 @@ func (entity *T808_0x0117) Encode() ([]byte, error) {
             return nil, err
         }
         writer.Write(data)
+        //log.Infof("encode insert pkt %v", len(data))
     }
 
     return writer.Bytes(), nil
@@ -69,6 +70,7 @@ func (entity *T808_0x0117) DecodePacket(data []byte) error {
     if err != nil {
         return err
     }
+    //log.Infof("decode insert pkt %v", len(data)-n)
     entity.Packet = bytes.NewReader(data[n:])
     return nil
 }

@@ -8,7 +8,7 @@ import (
 // 终端应答
 type T808_0x8118 struct {
     PkgNo     byte
-    SessionId string
+    SessionId uint64
     Time      time.Time
 }
 
@@ -21,7 +21,7 @@ func (entity *T808_0x8118) Encode() ([]byte, error) {
 
     writer.WriteByte(entity.PkgNo)
 
-    writer.WriteString(entity.SessionId)
+    writer.WriteUint64(entity.SessionId)
 
     writer.WriteBcdTime(entity.Time)
 
@@ -38,7 +38,7 @@ func (entity *T808_0x8118) Decode(data []byte) (int, error) {
         return 0, err
     }
 
-    _, err = reader.ReadString(8)
+    _, err = reader.ReadUint64()
     if err != nil {
         return 0, err
     }

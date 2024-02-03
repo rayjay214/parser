@@ -12,7 +12,7 @@ import (
 type T808_0x0118 struct {
     PkgSize   byte
     PkgNo     byte
-    SessionId string
+    SessionId uint64
     Time      time.Time
     Packet    io.Reader //录音数据包
 }
@@ -28,7 +28,7 @@ func (entity *T808_0x0118) Encode() ([]byte, error) {
 
     writer.WriteByte(entity.PkgNo)
 
-    writer.WriteString(entity.SessionId)
+    writer.WriteUint64(entity.SessionId)
 
     writer.WriteBcdTime(entity.Time)
 
@@ -58,7 +58,7 @@ func (entity *T808_0x0118) Decode(data []byte) (int, error) {
         return 0, err
     }
 
-    entity.SessionId, err = reader.ReadString(8)
+    entity.SessionId, err = reader.ReadUint64()
     if err != nil {
         return 0, err
     }

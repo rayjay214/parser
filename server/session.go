@@ -124,7 +124,7 @@ func (session *Session) ReplyShortRecord(pkgNo byte) (uint16, error) {
 func (session *Session) ReplyVorRecord(body *jt808.T808_0x0118) (uint16, error) {
     entity := jt808.T808_0x8118{
         PkgNo:     body.PkgNo,
-        SessionId: "123454678",
+        SessionId: 0,
         Time:      body.Time,
     }
     return session.Send(&entity)

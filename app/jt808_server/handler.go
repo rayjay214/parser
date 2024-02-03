@@ -6,6 +6,7 @@ import (
     "github.com/rayjay214/parser/jt808"
     "github.com/rayjay214/parser/jt808/extra"
     "github.com/rayjay214/parser/server"
+    "github.com/rayjay214/parser/storage"
     log "github.com/sirupsen/logrus"
     "io/ioutil"
     "os"
@@ -80,6 +81,17 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200) {
             fields["剩余油量"] = ext.(*extra.Extra_0x02).Value()
         }
     }
+
+    cassSession, err := storage.GetSession()
+    defer cassSession.Close()
+    if err != nil {
+        log.Warnf("get cassandra failed %v", err)
+    }
+    err = insertLocation(cassSession, entity, imei)
+    if err != nil {
+        log.Warnf("insert location err %v", err)
+    }
+
     log.WithFields(fields).Info("上报终端位置信息")
 }
 
