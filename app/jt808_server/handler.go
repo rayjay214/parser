@@ -64,14 +64,17 @@ func handle0704(session *server.Session, message *jt808.Message) {
 func handleLocation(imei uint64, entity *jt808.T808_0x0200) {
 	fields := log.Fields{
 		"Imei": imei,
-		"警告":   fmt.Sprintf("0x%x", entity.Alarm),
-		"状态":   fmt.Sprintf("0x%x", entity.Status),
-		"纬度":   entity.Lat,
-		"经度":   entity.Lng,
-		"海拔":   entity.Altitude,
-		"速度":   entity.Speed,
-		"方向":   entity.Direction,
-		"时间":   entity.Time,
+		"警告": fmt.Sprintf("0x%x", entity.Alarm),
+		"状态": fmt.Sprintf("0x%x", entity.Status),
+		"纬度": entity.Lat,
+		"经度": entity.Lng,
+		"海拔": entity.Altitude,
+		"速度": entity.Speed,
+		"方向": entity.Direction,
+		"时间": entity.Time,
+	}
+	if entity.Status.Positioning() {
+
 	}
 
 	for _, ext := range entity.Extras {
@@ -323,4 +326,8 @@ func handle0119(session *server.Session, message *jt808.Message) {
 func handle0001(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0001)
 	log.Infof("handle 0001 %v", entity)
+}
+
+func handleLbs(entity jt808.T808_0x0200) {
+
 }
