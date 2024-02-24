@@ -2,6 +2,7 @@ package main
 
 import (
     "bytes"
+    "encoding/hex"
     "encoding/json"
     "errors"
     "fmt"
@@ -154,10 +155,13 @@ func getLbsLocation(entity *jt808.T808_0x0200) error {
         var err error
         for i := 0; i < wifiNum; i++ {
             var mac Mac
-            mac.MacAddr, err = reader.ReadString(6)
+            var byteMac []byte
+            byteMac, err = reader.Read(6)
             if err != nil {
                 return err
             }
+            mac.MacAddr = hex.EncodeToString(byteMac)
+
             mac.Rssi, err = reader.ReadByte()
             if err != nil {
                 return err
@@ -188,10 +192,10 @@ func getLbsLocation(entity *jt808.T808_0x0200) error {
         return errors.New("no valid lbs or wifi info")
     }
 
-    body := make(map[string]string)
+    body := make(map[string]interface{})
 
     if len(lbsInfo.BtsList) > 0 {
-        body["accesstype"] = "0"
+        body["accesstype"] = 0
         body["bts"] = fmt.Sprintf("%d,%d,%d,%d,%d", lbsInfo.Mcc, lbsInfo.Mnc, lbsInfo.BtsList[0].Lac, lbsInfo.BtsList[0].Cellid, lbsInfo.BtsList[0].Rssi)
         var btsList []string
         for _, bts := range lbsInfo.BtsList {
@@ -202,7 +206,7 @@ func getLbsLocation(entity *jt808.T808_0x0200) error {
     }
 
     if len(wifiInfo.MacList) > 0 {
-        body["accesstype"] = "1"
+        body["accesstype"] = 1
         var macList []string
         for _, mac := range wifiInfo.MacList {
             strMac := fmt.Sprintf("%s,%d", mac.MacAddr, mac.Rssi)
@@ -211,6 +215,7 @@ func getLbsLocation(entity *jt808.T808_0x0200) error {
         body["macs"] = strings.Join(macList, ",")
     }
     byteData, _ := json.Marshal(body)
+    log.Infof("post data is %v", string(byteData))
     reader := bytes.NewReader(byteData)
 
     request, err := http.NewRequest("POST", url, reader)
