@@ -160,7 +160,16 @@ func getLbsLocation(entity *jt808.T808_0x0200) error {
             if err != nil {
                 return err
             }
-            mac.MacAddr = hex.EncodeToString(byteMac)
+            strMac := hex.EncodeToString(byteMac)
+            var parts []string
+            for i := 0; i < len(strMac); i += 2 {
+                end := i + 2
+                if end > len(strMac) {
+                    end = len(strMac)
+                }
+                parts = append(parts, strMac[i:end])
+            }
+            mac.MacAddr = strings.Join(parts, ":")
 
             mac.Rssi, err = reader.ReadByte()
             if err != nil {
