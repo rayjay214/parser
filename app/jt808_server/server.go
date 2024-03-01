@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/rayjay214/parser/app/jt808_server/service"
 	"github.com/rayjay214/parser/jt808"
 	"github.com/rayjay214/parser/server"
-	"github.com/rayjay214/parser/service"
 	"github.com/rayjay214/parser/storage"
 )
 
