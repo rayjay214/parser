@@ -37,6 +37,7 @@ func main() {
 
 	storage.InitCass("47.107.69.24")
 	storage.InitMinio("114.215.190.173:9000")
+	storage.InitRedis("47.107.69.24:6480")
 
 	go service.StartRpc(server)
 	server.Run("tcp", 8808)
