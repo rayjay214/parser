@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	proto2 "github.com/rayjay214/parser/app/jt808_server/service/proto"
+	"github.com/rayjay214/parser/app/jt808_server/service/proto"
 	"github.com/rayjay214/parser/server"
+	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -13,11 +14,11 @@ import (
 var gJt808Server *server.Server
 
 type deviceService struct {
-	proto2.UnimplementedDeviceServiceServer
+	proto.UnimplementedDeviceServiceServer
 }
 
-func (s *deviceService) SendCmd(ctx context.Context, req *proto2.SendCmdRequest) (*proto2.SendCmdReply, error) {
-	var resp proto2.SendCmdReply
+func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendCmdRequest) (*proto.SendCmdReply, error) {
+	var resp proto.SendCmdReply
 	resp.Message = "ok"
 	session, ok := gJt808Server.GetSession(req.Imei)
 
@@ -27,13 +28,18 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto2.SendCmdRequest)
 		return &resp, errors.New("can't find device")
 	}
 
-	session.SendCmd(req.Content)
+	seqNo, err := session.SendCmd(req.Content)
+	if err != nil {
+		return &resp, err
+	}
+
+	storage.SetCmdLog(req.Imei, seqNo, req.Timeid)
 
 	return &resp, nil
 }
 
-func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto2.OpenShortRecordRequest) (*proto2.CommonReply, error) {
-	var resp proto2.CommonReply
+func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShortRecordRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
 	resp.Message = "ok"
 	session, ok := gJt808Server.GetSession(req.Imei)
 
@@ -48,8 +54,8 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto2.OpenSho
 	return &resp, nil
 }
 
-func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto2.VorRecordSwitchRequest) (*proto2.CommonReply, error) {
-	var resp proto2.CommonReply
+func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecordSwitchRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
 	resp.Message = "ok"
 	session, ok := gJt808Server.GetSession(req.Imei)
 
@@ -72,7 +78,7 @@ func StartRpc(tcpServer *server.Server) {
 	}
 
 	server := grpc.NewServer()
-	proto2.RegisterDeviceServiceServer(server, &deviceService{})
+	proto.RegisterDeviceServiceServer(server, &deviceService{})
 
 	log.Println("gRPC server is running on :40051")
 	if err := server.Serve(lis); err != nil {

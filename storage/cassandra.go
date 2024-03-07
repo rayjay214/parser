@@ -23,14 +23,14 @@ func GetSession() (*gocql.Session, error) {
 }
 
 func InsertLocation(loc Location) error {
-	query := "insert into t_location(imei, date, time, addr, direction, lat, lng, speed, type) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	query := "insert into t_location(imei, date, time, direction, lat, lng, speed, type) values (?, ?, ?, ?, ?, ?, ?, ?)"
 	session, err := GetSession()
 	if err != nil {
 		return err
 	}
 	defer session.Close()
 
-	err = session.Query(query, loc.Imei, loc.Date, loc.Time, "", loc.Direction, loc.Lat, loc.Lng, loc.Speed, 0).Exec()
+	err = session.Query(query, loc.Imei, loc.Date, loc.Time, loc.Direction, loc.Lat, loc.Lng, loc.Speed, loc.Type).Exec()
 	if err != nil {
 		return err
 	}
@@ -47,6 +47,22 @@ func InsertRecord(record Record) error {
 	defer session.Close()
 
 	err = session.Query(query, record.Imei, record.Time, record.Duration, record.Filename, record.Status).Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateCmdResponse(imei uint64, timeid uint64, response string) error {
+	query := "update t_cmd set response=? where imei=? and time=?"
+	session, err := GetSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.Query(query, response, imei, timeid).Exec()
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ type Location struct {
 	Imei      uint64
 	Date      int
 	Time      int64
-	Addr      string
 	Direction uint16
 	Lat       uint64
 	Lng       uint64

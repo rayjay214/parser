@@ -6,6 +6,7 @@ import (
     "fmt"
     "github.com/rayjay214/link"
     "github.com/rayjay214/parser/jt808"
+    "github.com/rayjay214/parser/storage"
     log "github.com/sirupsen/logrus"
     "net"
     "runtime/debug"
@@ -157,6 +158,11 @@ func (server *Server) handleReadTimeout(key string) {
         return
     }
     session.Close()
+
+    info := map[string]interface{}{
+        "state": "1",
+    }
+    storage.SetRunInfo(sessionID, info)
 
     log.WithFields(log.Fields{
         "id": sessionID,

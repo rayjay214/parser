@@ -205,6 +205,16 @@ func handle1107(session *server.Session, message *jt808.Message) {
 func handle1300(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1300)
 	log.Infof("handle 1300 %v", entity)
+	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo)
+	if err != nil {
+		return
+	}
+	timeid, _ := strconv.ParseUint(result, 10, 64)
+	log.Infof("timeid %v", timeid)
+	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
+	if err != nil {
+		log.Infof("err %v", err)
+	}
 }
 
 func handle0116(session *server.Session, message *jt808.Message) {
