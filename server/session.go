@@ -172,7 +172,7 @@ func (session *Session) SendCmd(content string) (uint16, error) {
 }
 
 // 开启短录音
-func (session *Session) OpenShortRecord(seconds uint64) (uint16, error) {
+func (session *Session) OpenShortRecord(seconds int64) (uint16, error) {
 	entity := jt808.T808_0x8116{
 		RecordTime: byte(seconds),
 		SessionId:  "12345678",
@@ -181,18 +181,18 @@ func (session *Session) OpenShortRecord(seconds uint64) (uint16, error) {
 }
 
 // 声控录音
-func (session *Session) VorRecordSwitch(switchs int32) (uint16, error) {
+func (session *Session) VorRecordSwitch(switches int32) (uint16, error) {
 	var entity jt808.T808_0x8103
 	if session.Protocol == 1 {
 		entity = jt808.T808_0x8103{
 			Params: []jt808.Param{
-				new(jt808.Param).SetByte(0x0061, byte(switchs)),
+				new(jt808.Param).SetByte(0x0061, byte(switches)),
 			},
 		}
 	} else {
 		entity = jt808.T808_0x8103{
 			Params: []jt808.Param{
-				new(jt808.Param).SetByte(0xf114, byte(switchs)),
+				new(jt808.Param).SetByte(0xf114, byte(switches)),
 			},
 		}
 	}

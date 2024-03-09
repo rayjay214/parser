@@ -33,7 +33,7 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendCmdRequest) 
 		return &resp, err
 	}
 
-	storage.SetCmdLog(req.Imei, seqNo, req.Timeid)
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
 
 	return &resp, nil
 }
@@ -49,7 +49,17 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShor
 		return &resp, errors.New("can't find device")
 	}
 
-	session.OpenShortRecord(req.Seconds)
+	switch req.Protocol {
+	case "1", "2":
+		_, err := session.OpenShortRecord(req.Seconds)
+		if err != nil {
+			return &resp, err
+		}
+		storage.SetCmdLog(req.Imei, 10, req.TimeId) //应答中没有seqno, 用type代替
+	default:
+		resp.Message = "protocol not supported"
+		return &resp, errors.New("protocol not supported")
+	}
 
 	return &resp, nil
 }
@@ -65,7 +75,17 @@ func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecor
 		return &resp, errors.New("can't find device")
 	}
 
-	session.VorRecordSwitch(req.Switch)
+	switch req.Protocol {
+	case "1", "2":
+		seqNo, err := session.VorRecordSwitch(req.Switch)
+		if err != nil {
+			return &resp, err
+		}
+		storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	default:
+		resp.Message = "protocol not supported"
+		return &resp, errors.New("protocol not supported")
+	}
 
 	return &resp, nil
 }

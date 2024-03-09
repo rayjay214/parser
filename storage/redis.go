@@ -63,3 +63,9 @@ func GetCmdLog(imei uint64, seqNo uint16) (string, error) {
 
 	return result, err
 }
+
+func SetRecordSchedule(imei uint64, schedule float32) error {
+	key := fmt.Sprintf("record_schedule_%v", imei)
+	_, err := rdb.Set(context.Background(), key, schedule, 130*time.Second).Result()
+	return err
+}

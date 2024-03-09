@@ -131,8 +131,6 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 	}
 
-	storage.SetRunInfo(imei, info)
-
 	if entity.Status.Positioning() {
 		var iLat, iLng uint64
 		fLat, _ := entity.Lat.Float64()
@@ -156,6 +154,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		if err != nil {
 			log.Warnf("insert location err %v", err)
 		}
+		info["lat"] = fLat
+		info["lng"] = fLng
 	} else {
 		var lbsResp LbsResp
 		err := getLbsLocation(entity, &lbsResp)
@@ -181,11 +181,15 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			Wgs:       "",
 		}
 
+		info["lat"] = lbsResp.Lat
+		info["lng"] = lbsResp.Lng
+
 		err = storage.InsertLocation(loc)
 		if err != nil {
 			log.Warnf("insert location err %v", err)
 		}
 	}
+	storage.SetRunInfo(imei, info)
 }
 
 func handle1007(session *server.Session, message *jt808.Message) {
@@ -199,6 +203,21 @@ func handle1107(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1107)
 	log.Infof("handle 1107 %v", entity)
 
+	deviceInfo, err := storage.GetDevice(session.ID())
+	if err != nil {
+		session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+		return
+	}
+	if iccid, ok := deviceInfo["iccid"]; ok {
+		if iccid != entity.Iccid {
+			log.Infof("%v update iccid from %v to %v", session.ID(), iccid, entity.Iccid)
+			err = storage.UpdateIccid(session.ID(), entity.Iccid)
+			if err != nil {
+				log.Warnf("%v update iccid failed %v", session.ID(), err)
+			}
+		}
+	}
+
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
@@ -210,7 +229,6 @@ func handle1300(session *server.Session, message *jt808.Message) {
 		return
 	}
 	timeid, _ := strconv.ParseUint(result, 10, 64)
-	log.Infof("timeid %v", timeid)
 	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 	if err != nil {
 		log.Infof("err %v", err)
@@ -225,7 +243,23 @@ func handle0116(session *server.Session, message *jt808.Message) {
 		StartTime: time.Now(),
 		Schedule:  0.0,
 	}
-	log.Infof("handle 0116 %v", entity)
+	log.Infof("%v handle 0116 %v", session.ID(), entity)
+	result, err := storage.GetCmdLog(session.ID(), 10)
+	if err != nil {
+		return
+	}
+	timeid, _ := strconv.ParseUint(result, 10, 64)
+	var content string
+	if entity.RecordStatus == 0 {
+		content = "下发成功"
+	} else {
+		content = "下发失败"
+	}
+	err = storage.UpdateCmdResponse(session.ID(), timeid, content)
+	if err != nil {
+		log.Infof("err %v", err)
+	}
+
 }
 
 func handle0117(session *server.Session, message *jt808.Message) {
@@ -243,7 +277,7 @@ func handle0117(session *server.Session, message *jt808.Message) {
 	shortRecord, ok := session.UserData["short_record"].(ShortRecord)
 	if ok {
 		shortRecord.Schedule = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
-		log.Infof("schedule is %.2f", shortRecord.Schedule)
+		storage.SetRecordSchedule(session.ID(), shortRecord.Schedule)
 		buffer, _ := ioutil.ReadAll(entity.Packet)
 		shortRecord.Writer.Write(buffer)
 	}
@@ -407,5 +441,39 @@ func handle0119(session *server.Session, message *jt808.Message) {
 
 func handle0001(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0001)
-	log.Infof("handle 0001 %v", entity)
+	log.Infof("%v handle 0001 %v", session.ID(), entity)
+
+	result, err := storage.GetCmdLog(session.ID(), entity.ReplyMsgSerialNo)
+	if err != nil {
+		return
+	}
+	timeid, _ := strconv.ParseUint(result, 10, 64)
+	var content string
+	if entity.Result == 0 {
+		content = "设置成功"
+	} else {
+		content = "设置失败"
+	}
+	err = storage.UpdateCmdResponse(session.ID(), timeid, content)
+	if err != nil {
+		log.Infof("err %v", err)
+	}
+}
+
+func handle0107(session *server.Session, message *jt808.Message) {
+	entity := message.Body.(*jt808.T808_0x0107)
+	log.Infof("%v handle 0107 %v", session.ID(), entity)
+	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle0112(session *server.Session, message *jt808.Message) {
+	entity := message.Body.(*jt808.T808_0x0112)
+	log.Infof("%v handle 0112 %v", session.ID(), entity)
+	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
+func handle1006(session *server.Session, message *jt808.Message) {
+	//entity := message.Body.(*jt808.T808_0x1006)
+	//log.Infof("%v handle 1006 %v", session.ID(), entity)
+	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }

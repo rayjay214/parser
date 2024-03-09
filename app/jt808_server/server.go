@@ -34,10 +34,14 @@ func main() {
 	server.AddHandler(jt808.MsgT808_0x0118, handle0118)
 	server.AddHandler(jt808.MsgT808_0x0119, handle0119)
 	server.AddHandler(jt808.MsgT808_0x0001, handle0001)
+	server.AddHandler(jt808.MsgT808_0x0107, handle0107)
+	server.AddHandler(jt808.MsgT808_0x0112, handle0112)
+	server.AddHandler(jt808.MsgT808_0x1006, handle1006)
 
 	storage.InitCass("47.107.69.24")
 	storage.InitMinio("114.215.190.173:9000")
 	storage.InitRedis("47.107.69.24:6480")
+	storage.InitMysql("47.107.69.24:8000")
 
 	go service.StartRpc(server)
 	server.Run("tcp", 8808)
