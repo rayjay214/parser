@@ -74,6 +74,7 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
+		"direction": entity.Direction,
 	}
 
 	locTypeBase := 0
@@ -156,6 +157,9 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 		info["lat"] = fLat
 		info["lng"] = fLng
+		info["loc_type"] = 0 + locTypeBase
+		info["loc_time"] = entity.Time
+
 	} else {
 		var lbsResp LbsResp
 		err := getLbsLocation(entity, &lbsResp)
@@ -183,6 +187,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 
 		info["lat"] = lbsResp.Lat
 		info["lng"] = lbsResp.Lng
+		info["loc_type"] = lbsResp.LocType + locTypeBase
+		info["loc_time"] = entity.Time
 
 		err = storage.InsertLocation(loc)
 		if err != nil {
@@ -251,15 +257,20 @@ func handle0116(session *server.Session, message *jt808.Message) {
 	timeid, _ := strconv.ParseUint(result, 10, 64)
 	var content string
 	if entity.RecordStatus == 0 {
-		content = "下发成功"
+		content = "设置成功"
 	} else {
-		content = "下发失败"
+		content = "设置失败"
 	}
 	err = storage.UpdateCmdResponse(session.ID(), timeid, content)
 	if err != nil {
 		log.Infof("err %v", err)
 	}
 
+	info := map[string]interface{}{
+		"record_state": entity.RecordStatus,
+	}
+	storage.SetRunInfo(message.Header.Imei, info)
+	storage.SetRecordSchedule(session.ID(), 0)
 }
 
 func handle0117(session *server.Session, message *jt808.Message) {
@@ -345,6 +356,7 @@ func handle0115(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0115)
 	log.Infof("handle 0115 %v", entity)
 	delete(session.UserData, "short_record")
+	storage.DelRunInfoFields(session.ID(), []string{"record_state"})
 	//session.Reply8115(entity.SessionId)
 }
 
@@ -359,6 +371,12 @@ func handle0120(session *server.Session, message *jt808.Message) {
 		FirstPacket: true,
 		PkgCnt:      0,
 	}
+	info := map[string]interface{}{
+		"record_state": 3,
+	}
+	storage.SetRunInfo(message.Header.Imei, info)
+	storage.SetVorSwitch(session.ID(), 1)
+
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
@@ -436,6 +454,8 @@ func handle0118(session *server.Session, message *jt808.Message) {
 func handle0119(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0119)
 	log.Infof("handle 0119 %v", entity)
+	storage.DelRunInfoFields(session.ID(), []string{"record_state"})
+	storage.SetVorSwitch(session.ID(), 0)
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 

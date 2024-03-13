@@ -69,3 +69,9 @@ func SetRecordSchedule(imei uint64, schedule float32) error {
 	_, err := rdb.Set(context.Background(), key, schedule, 130*time.Second).Result()
 	return err
 }
+
+func DelRunInfoFields(imei uint64, fields []string) error {
+	key := fmt.Sprintf("runinfo_%v", imei)
+	_, err := rdb.HDel(context.Background(), key, fields...).Result()
+	return err
+}

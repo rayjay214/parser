@@ -33,3 +33,14 @@ func UpdateIccid(imei uint64, iccid string) error {
 	_, err := MysqlDB.Exec("update device set iccid=? where imei=?", iccid, imei)
 	return err
 }
+
+func SetVorSwitch(imei uint64, vorSwitch int) error {
+	var err error
+	bitValue := 1 << 0
+	if vorSwitch == 1 {
+		_, err = MysqlDB.Exec("update device set switch=switch|? where imei=?", bitValue, imei)
+	} else {
+		_, err = MysqlDB.Exec("update device set switch=switch&~? where imei=?", bitValue, imei)
+	}
+	return err
+}
