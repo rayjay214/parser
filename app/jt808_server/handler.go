@@ -234,7 +234,10 @@ func handle1300(session *server.Session, message *jt808.Message) {
 	if err != nil {
 		return
 	}
-	timeid, _ := strconv.ParseUint(result, 10, 64)
+	var timeid uint64
+	if v, ok := result["timeid"]; ok {
+		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
 	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 	if err != nil {
 		log.Infof("err %v", err)
@@ -254,7 +257,11 @@ func handle0116(session *server.Session, message *jt808.Message) {
 	if err != nil {
 		return
 	}
-	timeid, _ := strconv.ParseUint(result, 10, 64)
+	var timeid uint64
+	if v, ok := result["timeid"]; ok {
+		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
+
 	var content string
 	if entity.RecordStatus == 0 {
 		content = "设置成功"
@@ -467,7 +474,19 @@ func handle0001(session *server.Session, message *jt808.Message) {
 	if err != nil {
 		return
 	}
-	timeid, _ := strconv.ParseUint(result, 10, 64)
+	var timeid uint64
+	if v, ok := result["timeid"]; ok {
+		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
+
+	//同步定位模式
+	if mode, ok := result["mode"]; ok {
+		err = storage.UpdateMode(session.ID(), mode)
+		if err != nil {
+			log.Warnf("%v update mode failed %v", session.ID(), err)
+		}
+	}
+
 	var content string
 	if entity.Result == 0 {
 		content = "设置成功"

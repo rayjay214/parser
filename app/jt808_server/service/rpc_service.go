@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/rayjay214/parser/app/jt808_server/service/proto"
+	"github.com/rayjay214/parser/common"
 	"github.com/rayjay214/parser/server"
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
@@ -86,6 +87,63 @@ func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecor
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
 	}
+
+	return &resp, nil
+}
+
+func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	writer := common.NewWriter()
+	//nMode, _ := strconv.Atoi(req.Mode)
+	//writer.WriteByte(byte(nMode))
+
+	switch req.Protocol {
+	case "1":
+		switch req.Mode {
+		case "1": //常用
+			writer.WriteByte(1)
+			writer.WriteUint16(0)
+		case "2": //省电
+			writer.WriteByte(7)
+			writer.WriteUint16(uint16(req.Interval))
+		case "3": //点名
+			writer.WriteByte(8)
+			writer.WriteUint16(0)
+		}
+
+	case "2":
+		switch req.Mode {
+		case "1":
+			writer.WriteByte(1)
+			writer.WriteUint16(0)
+		case "2":
+			writer.WriteByte(7)
+			writer.WriteUint16(uint16(req.Interval))
+		case "3":
+			writer.WriteByte(8)
+			writer.WriteUint16(0)
+		}
+
+	default:
+		resp.Message = "protocol not supported"
+		return &resp, errors.New("protocol not supported")
+	}
+
+	param := writer.Bytes()
+	seqNo, err := session.SetLocMode(param)
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode)
 
 	return &resp, nil
 }

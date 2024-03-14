@@ -1,11 +1,29 @@
 package main
 
 import (
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rayjay214/parser/app/jt808_server/service"
 	"github.com/rayjay214/parser/jt808"
 	"github.com/rayjay214/parser/server"
 	"github.com/rayjay214/parser/storage"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
+
+func init() {
+	path := "log/server.log"
+	writer, _ := rotatelogs.New(
+		path+".%Y%m%d%H%M",
+		rotatelogs.WithLinkName(path),
+		rotatelogs.WithMaxAge(time.Duration(60*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Duration(7*24)*time.Hour),
+	)
+	log.SetOutput(writer)
+	log.SetLevel(log.DebugLevel)
+	log.SetReportCaller(true)
+	log.SetFormatter(&log.TextFormatter{TimestampFormat: "2006-01-02 15:04:05"})
+	log.Info("init log done")
+}
 
 func main() {
 	server, _ := server.NewServer(server.Options{
