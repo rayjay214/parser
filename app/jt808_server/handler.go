@@ -502,6 +502,22 @@ func handle0001(session *server.Session, message *jt808.Message) {
 func handle0107(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0107)
 	log.Infof("%v handle 0107 %v", session.ID(), entity)
+
+	deviceInfo, err := storage.GetDevice(session.ID())
+	if err != nil {
+		session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+		return
+	}
+	if iccid, ok := deviceInfo["iccid"]; ok {
+		if iccid != entity.Iccid {
+			log.Infof("%v update iccid from %v to %v", session.ID(), iccid, entity.Iccid)
+			err = storage.UpdateIccid(session.ID(), entity.Iccid)
+			if err != nil {
+				log.Warnf("%v update iccid failed %v", session.ID(), err)
+			}
+		}
+	}
+
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
