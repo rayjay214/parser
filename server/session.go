@@ -200,6 +200,52 @@ func (session *Session) VorRecordSwitch(switches int32) (uint16, error) {
 	return session.Send(&entity)
 }
 
+// 定位模式
+func (session *Session) SetLocMode(param []byte) (uint16, error) {
+	var entity jt808.T808_0x8103
+	if session.Protocol == 1 {
+		entity = jt808.T808_0x8103{
+			Params: []jt808.Param{
+				new(jt808.Param).SetBytes(0xf121, param),
+			},
+		}
+	} else if session.Protocol == 2 {
+		entity = jt808.T808_0x8103{
+			Params: []jt808.Param{
+				new(jt808.Param).SetBytes(0xf121, param),
+			},
+		}
+	}
+
+	return session.Send(&entity)
+}
+
+// 立即定位
+func (session *Session) Locate() (uint16, error) {
+	entity := jt808.T808_0x8201{}
+	return session.Send(&entity)
+}
+
+// 震动阈值
+func (session *Session) SetShakeValue(value int32) (uint16, error) {
+	var entity jt808.T808_0x8103
+	if session.Protocol == 1 {
+		entity = jt808.T808_0x8103{
+			Params: []jt808.Param{
+				new(jt808.Param).SetByte(0x0078, byte(value)),
+			},
+		}
+	} else if session.Protocol == 2 {
+		entity = jt808.T808_0x8103{
+			Params: []jt808.Param{
+				new(jt808.Param).SetByte(0xf112, byte(value)),
+			},
+		}
+	}
+
+	return session.Send(&entity)
+}
+
 // 发起请求
 func (session *Session) Request(entity jt808.Entity, cb func(answer *jt808.Message)) (uint16, error) {
 	serialNo, err := session.Send(entity)

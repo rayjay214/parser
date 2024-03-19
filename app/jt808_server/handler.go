@@ -25,6 +25,11 @@ func handle0102(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0102)
 	log.Infof("handle 0102 %v", entity)
 
+	set, err := storage.SetStartTime(session.ID())
+	if err == nil && set {
+		storage.UpdateStartTime(session.ID())
+	}
+
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
 	}
@@ -51,7 +56,7 @@ func handle0808(session *server.Session, message *jt808.Message) {
 // 处理上报位置
 func handle0200(session *server.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0200)
-	log.Infof("handle 0200 %v", entity)
+	//log.Infof("handle 0200 %v", entity)
 	handleLocation(message.Header.Imei, entity, session.Protocol)
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
@@ -68,6 +73,15 @@ func handle0704(session *server.Session, message *jt808.Message) {
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
+func handle0201(session *server.Session, message *jt808.Message) {
+	entity := message.Body.(*jt808.T808_0x0201)
+	log.Infof("handle 0201 %v", entity)
+
+	handleLocation(message.Header.Imei, &entity.Result, session.Protocol)
+
+	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
 func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 	date := entity.Time.Format("20060102")
 	iDate, _ := strconv.Atoi(date)
@@ -76,7 +90,6 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		"comm_time": time.Now(),
 		"direction": entity.Direction,
 	}
-
 	locTypeBase := 0
 
 	for _, ext := range entity.Extras {
@@ -106,10 +119,10 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			info["satellite"] = ext.(*extra.Extra_0x31).Value()
 		case extra.Extra_0xe7{}.ID():
 			v := ext.(*extra.Extra_0xe7).Value().(extra.Extra_0xe7_Value)
-			log.Infof("e7 status is %v", v)
+			//log.Infof("e7 status is %v", v)
 			if protocol == 2 {
 				if v.SleepCheckWay == 1 {
-					if v.SleepStatus == 0 {
+					if v.SleepStatus == 1 {
 						info["state"] = "2"
 						locTypeBase = 3
 					} else {
@@ -132,14 +145,15 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 	}
 
+	var loc storage.Location
 	if entity.Status.Positioning() {
-		var iLat, iLng uint64
+		var iLat, iLng int64
 		fLat, _ := entity.Lat.Float64()
 		fLng, _ := entity.Lng.Float64()
-		iLat = uint64(fLat * float64(1000000))
-		iLng = uint64(fLng * float64(1000000))
+		iLat = int64(fLat * float64(1000000))
+		iLng = int64(fLng * float64(1000000))
 
-		loc := storage.Location{
+		loc = storage.Location{
 			Imei:      imei,
 			Date:      iDate,
 			Time:      entity.Time.Unix(),
@@ -173,13 +187,13 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			return
 		}
 
-		loc := storage.Location{
+		loc = storage.Location{
 			Imei:      imei,
 			Date:      iDate,
 			Time:      entity.Time.Unix(),
 			Direction: entity.Direction,
-			Lat:       uint64(lbsResp.Lat * 1000000),
-			Lng:       uint64(lbsResp.Lng * 1000000),
+			Lat:       int64(lbsResp.Lat * 1000000),
+			Lng:       int64(lbsResp.Lng * 1000000),
 			Speed:     entity.Speed,
 			Type:      lbsResp.LocType + locTypeBase,
 			Wgs:       "",
@@ -196,6 +210,43 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 	}
 	storage.SetRunInfo(imei, info)
+
+	checkAlarm(entity, &loc, protocol)
+}
+
+func checkAlarm(entity *jt808.T808_0x0200, loc *storage.Location, protocol int) {
+	fGetAlarmbit := func(value uint32, offset int) uint32 {
+		return uint32(value) & (1 << offset) >> offset
+	}
+
+	if entity.Alarm == 0 {
+		return
+	}
+	alarm := storage.Alarm{
+		Imei:  loc.Imei,
+		Time:  time.Unix(loc.Time, 0),
+		Lat:   loc.Lat,
+		Lng:   loc.Lng,
+		Speed: loc.Speed,
+	}
+
+	if fGetAlarmbit(entity.Alarm, 0) == 1 { //sos
+		alarm.Type = "4"
+		storage.InsertAlarm(alarm)
+	}
+	if fGetAlarmbit(entity.Alarm, 1) == 1 { //超速
+		alarm.Type = "5"
+		storage.InsertAlarm(alarm)
+	}
+	if fGetAlarmbit(entity.Alarm, 7) == 1 { //低电
+		alarm.Type = "3"
+		storage.InsertAlarm(alarm)
+	}
+	if fGetAlarmbit(entity.Alarm, 9) == 1 { //震动
+		alarm.Type = "1"
+		storage.InsertAlarm(alarm)
+	}
+
 }
 
 func handle1007(session *server.Session, message *jt808.Message) {
@@ -482,6 +533,15 @@ func handle0001(session *server.Session, message *jt808.Message) {
 	//同步定位模式
 	if mode, ok := result["mode"]; ok {
 		err = storage.UpdateMode(session.ID(), mode)
+		if err != nil {
+			log.Warnf("%v update mode failed %v", session.ID(), err)
+		}
+	}
+
+	//同步震动报警阈值
+	if value, ok := result["shake_value"]; ok {
+		shakeValue, _ := strconv.Atoi(value)
+		err = storage.UpdateShakeValue(session.ID(), shakeValue)
 		if err != nil {
 			log.Warnf("%v update mode failed %v", session.ID(), err)
 		}

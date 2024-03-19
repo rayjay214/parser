@@ -103,36 +103,23 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 	}
 
 	writer := common.NewWriter()
-	//nMode, _ := strconv.Atoi(req.Mode)
-	//writer.WriteByte(byte(nMode))
 
 	switch req.Protocol {
-	case "1":
+	case "1", "2":
 		switch req.Mode {
-		case "1": //常用
+		case "1": //性能
 			writer.WriteByte(1)
 			writer.WriteUint16(0)
-		case "2": //省电
+		case "2": //正常
 			writer.WriteByte(7)
-			writer.WriteUint16(uint16(req.Interval))
+			writer.WriteUint16(120)
 		case "3": //点名
 			writer.WriteByte(8)
 			writer.WriteUint16(0)
-		}
-
-	case "2":
-		switch req.Mode {
-		case "1":
-			writer.WriteByte(1)
-			writer.WriteUint16(0)
-		case "2":
+		case "4": //省电
 			writer.WriteByte(7)
-			writer.WriteUint16(uint16(req.Interval))
-		case "3":
-			writer.WriteByte(8)
-			writer.WriteUint16(0)
+			writer.WriteUint16(300)
 		}
-
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
@@ -144,6 +131,46 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 		return &resp, err
 	}
 	storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode)
+
+	return &resp, nil
+}
+
+func (s *deviceService) Locate(ctx context.Context, req *proto.LocateRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	seqNo, err := session.Locate()
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+
+	return &resp, nil
+}
+
+func (s *deviceService) SetShakeValue(ctx context.Context, req *proto.SetShakeValueRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	seqNo, err := session.SetShakeValue(req.ShakeValue)
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLogShakeValue(req.Imei, seqNo, req.TimeId, req.ShakeValue)
 
 	return &resp, nil
 }

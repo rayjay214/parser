@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	log "github.com/sirupsen/logrus"
+	"strconv"
 	"time"
 )
 
@@ -43,4 +45,46 @@ func SetVorSwitch(imei uint64, vorSwitch int) error {
 		_, err = MysqlDB.Exec("update device set switch=switch&~? where imei=?", bitValue, imei)
 	}
 	return err
+}
+
+func UpdateMode(imei uint64, mode string) error {
+	_, err := MysqlDB.Exec("update device set mode=? where imei=?", mode, imei)
+	return err
+}
+
+func UpdateStartTime(imei uint64) error {
+	startTime := time.Now().Format("2006-01-02 15:04:05")
+	_, err := MysqlDB.Exec("update device set start_time=? where imei=?", startTime, imei)
+	return err
+}
+
+func UpdateShakeValue(imei uint64, shakeValue int) error {
+	_, err := MysqlDB.Exec("update device set shake_value=? where imei=?", shakeValue, imei)
+	return err
+}
+
+func InsertAlarm(alarm Alarm) error {
+	log.Infof("insert alarm %v", alarm)
+	time := alarm.Time.Format("2006-01-02 15:04:05")
+	_, err := MysqlDB.Exec("insert into alarm (imei, time, type, lng, lat, speed, fence_name) values (?,?,?,?,?,?,?)",
+		alarm.Imei, time, alarm.Type, alarm.Lng, alarm.Lat, alarm.Speed, alarm.FenceName)
+	if err != nil {
+		log.Infof("alarm err %v", err)
+	}
+	return err
+}
+
+func InsertOfflineAlarm(imei uint64) error {
+	alarm := Alarm{
+		Imei: imei,
+		Time: time.Now(),
+		Type: "6",
+	}
+
+	runInfo, _ := GetRunInfo(imei)
+	fLng, _ := strconv.ParseFloat(runInfo["lng"], 64)
+	fLat, _ := strconv.ParseFloat(runInfo["lat"], 64)
+	alarm.Lat = int64(fLat * 1000000)
+	alarm.Lng = int64(fLng * 1000000)
+	return InsertAlarm(alarm)
 }

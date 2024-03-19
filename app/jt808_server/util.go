@@ -9,7 +9,6 @@ import (
 	"github.com/rayjay214/parser/common"
 	"github.com/rayjay214/parser/jt808"
 	"github.com/rayjay214/parser/jt808/extra"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -44,7 +43,6 @@ type LbsResp struct {
 }
 
 func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
-	log.Infof("enter getlbs")
 	url := "http://114.215.191.234/locapi"
 
 	var lbsInfo LbsInfo
@@ -239,7 +237,7 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 		body["macs"] = strings.Join(macList, "|")
 	}
 	byteData, _ := json.Marshal(body)
-	log.Infof("post data is %v", string(byteData))
+	//log.Infof("post data is %v", string(byteData))
 	reader := bytes.NewReader(byteData)
 
 	request, err := http.NewRequest("POST", url, reader)
@@ -259,7 +257,7 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("resp is %v", string(respBytes))
+	//log.Infof("resp is %v", string(respBytes))
 
 	err = json.Unmarshal(respBytes, lbsResp)
 	if err != nil {

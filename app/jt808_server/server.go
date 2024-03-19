@@ -55,6 +55,7 @@ func main() {
 	server.AddHandler(jt808.MsgT808_0x0107, handle0107)
 	server.AddHandler(jt808.MsgT808_0x0112, handle0112)
 	server.AddHandler(jt808.MsgT808_0x1006, handle1006)
+	server.AddHandler(jt808.MsgT808_0x0201, handle0201)
 
 	storage.InitCass("47.107.69.24")
 	storage.InitMinio("114.215.190.173:9000")

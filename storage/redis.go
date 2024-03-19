@@ -43,6 +43,12 @@ func SetRunInfo(imei uint64, info map[string]interface{}) error {
 	return err
 }
 
+func GetRunInfo(imei uint64) (map[string]string, error) {
+	key := fmt.Sprintf("runinfo_%v", imei)
+	result, err := rdb.HGetAll(context.Background(), key).Result()
+	return result, err
+}
+
 func SetCmdLog(imei uint64, seqNo uint16, timeid uint64) error {
 	key := fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)
 	info := map[string]interface{}{
@@ -56,10 +62,38 @@ func SetCmdLog(imei uint64, seqNo uint16, timeid uint64) error {
 	return err
 }
 
-func GetCmdLog(imei uint64, seqNo uint16) (string, error) {
+func SetCmdLogMode(imei uint64, seqNo uint16, timeid uint64, mode string) error {
+	key := fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)
+	info := map[string]interface{}{
+		"timeid": timeid,
+		"mode":   mode,
+	}
+
+	_, err := rdb.HSet(context.Background(), key, info).Result()
+
+	_, err = rdb.Expire(context.Background(), key, 180*time.Second).Result()
+
+	return err
+}
+
+func SetCmdLogShakeValue(imei uint64, seqNo uint16, timeid uint64, value int32) error {
+	key := fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)
+	info := map[string]interface{}{
+		"timeid":      timeid,
+		"shake_value": value,
+	}
+
+	_, err := rdb.HSet(context.Background(), key, info).Result()
+
+	_, err = rdb.Expire(context.Background(), key, 180*time.Second).Result()
+
+	return err
+}
+
+func GetCmdLog(imei uint64, seqNo uint16) (map[string]string, error) {
 	key := fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)
 
-	result, err := rdb.HGet(context.Background(), key, "timeid").Result()
+	result, err := rdb.HGetAll(context.Background(), key).Result()
 
 	return result, err
 }
@@ -74,4 +108,10 @@ func DelRunInfoFields(imei uint64, fields []string) error {
 	key := fmt.Sprintf("runinfo_%v", imei)
 	_, err := rdb.HDel(context.Background(), key, fields...).Result()
 	return err
+}
+
+func SetStartTime(imei uint64) (bool, error) {
+	key := fmt.Sprintf("starttime_%v", imei)
+	set, err := rdb.SetNX(context.Background(), key, time.Now(), 0).Result()
+	return set, err
 }
