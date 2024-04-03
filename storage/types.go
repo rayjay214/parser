@@ -31,3 +31,37 @@ type Alarm struct {
 	Type      string
 	FenceName string
 }
+
+type Circle struct {
+	Radius      float64
+	Lng         float64
+	Lat         float64
+	FenceType   string
+	FenceSwitch string
+	FenceState  string
+	FenceName   string
+}
+
+type Polygon struct {
+	Points      []Point
+	FenceType   string
+	FenceSwitch string
+	FenceState  string
+	FenceName   string
+}
+
+type Point struct {
+	Lng float64
+	Lat float64
+}
+
+type Region struct {
+	FenceType   string
+	FenceSwitch string
+	Area        string
+	City        string
+	Code        string
+	Province    string
+	FenceState  string
+	FenceName   string
+}

@@ -115,3 +115,24 @@ func SetStartTime(imei uint64) (bool, error) {
 	set, err := rdb.SetNX(context.Background(), key, time.Now(), 0).Result()
 	return set, err
 }
+
+func CheckFenceSwitch(imei uint64) (bool, error) {
+	key := "fenceset"
+	isExist, err := rdb.SIsMember(context.Background(), key, imei).Result()
+	return isExist, err
+}
+
+func GetFence(imei uint64) (map[string]string, error) {
+	key := fmt.Sprintf("fenceinfo_%v", imei)
+	result, err := rdb.HGetAll(context.Background(), key).Result()
+	return result, err
+}
+
+func SetFence(imei uint64, fenceId string, fenceInfo string) error {
+	key := fmt.Sprintf("fenceinfo_%v", imei)
+	info := map[string]string{
+		fenceId: fenceInfo,
+	}
+	_, err := rdb.HSet(context.Background(), key, info).Result()
+	return err
+}

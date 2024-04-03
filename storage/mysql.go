@@ -88,3 +88,22 @@ func InsertOfflineAlarm(imei uint64) error {
 	alarm.Lng = int64(fLng * 1000000)
 	return InsertAlarm(alarm)
 }
+
+// 查询增值服务可用值
+func CheckAsValue(imei uint64, asType string) error {
+	var total, used int
+	row := MysqlDB.QueryRow("SELECT total, used FROM additional_service WHERE imei=? AND start_time<? AND end_time>? "+
+		"AND (total-used>0) AND service_type=? order by end_time limit 1",
+		imei, time.Now(), time.Now(), asType)
+
+	err := row.Scan(&total, &used)
+	return err
+}
+
+// 使用增值服务可用值
+func UseAsValue(imei uint64, asType string, usedValue int) error {
+	_, err := MysqlDB.Exec("update additional_service set used=used+? WHERE imei=? AND start_time<? AND end_time>? "+
+		"AND (total-used>0) AND service_type=? order by end_time limit 1",
+		usedValue, imei, time.Now(), time.Now(), asType)
+	return err
+}

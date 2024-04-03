@@ -31,6 +31,7 @@ func handle0102(session *server.Session, message *jt808.Message) {
 	}
 
 	info := map[string]interface{}{
+		"status":    "2",
 		"comm_time": time.Now(),
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
@@ -41,6 +42,7 @@ func handle0102(session *server.Session, message *jt808.Message) {
 func handle0002(session *server.Session, message *jt808.Message) {
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
+		"state":     "3",
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
 
@@ -212,6 +214,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 	storage.SetRunInfo(imei, info)
 
 	checkAlarm(entity, &loc, protocol)
+
+	checkFence(&loc)
 }
 
 func checkAlarm(entity *jt808.T808_0x0200, loc *storage.Location, protocol int) {
@@ -352,11 +356,18 @@ func handle0117(session *server.Session, message *jt808.Message) {
 	}
 
 	if entity.PkgNo == entity.PkgSize {
+		err := storage.CheckAsValue(shortRecord.Imei, "2")
+		if err != nil { //没有增值服务
+			log.Warnf("%v no record time left", shortRecord.Imei)
+			session.ReplyShortRecord(entity.PkgNo)
+			return
+		}
+
 		fileSize := len(shortRecord.Writer.Bytes())
 		duration := calDuration(fileSize)
 		fileName := fmt.Sprintf("%v_%v.amr", shortRecord.Imei, shortRecord.StartTime.Unix())
 		reader := bytes.NewReader(shortRecord.Writer.Bytes())
-		err := storage.UploadFile("record", fileName, reader, int64(fileSize))
+		err = storage.UploadFile("record", fileName, reader, int64(fileSize))
 		if err != nil {
 			log.Warnf("upload record failed %v", err)
 		}
@@ -372,6 +383,8 @@ func handle0117(session *server.Session, message *jt808.Message) {
 		if err != nil {
 			log.Warnf("insert record failed %v", err)
 		}
+
+		storage.UseAsValue(shortRecord.Imei, "2", duration)
 		shortRecord.Writer.Reset()
 	}
 
@@ -471,11 +484,30 @@ func handle0118(session *server.Session, message *jt808.Message) {
 			vorRecord.Writer.Write(buffer)
 			vorRecord.PkgCnt += 1
 		} else { //上报当前缓存录音
+			info := map[string]interface{}{
+				"comm_time": time.Now(),
+				"state":     "3",
+			}
+			storage.SetRunInfo(message.Header.Imei, info)
+
+			err := storage.CheckAsValue(vorRecord.Imei, "2")
+			if err != nil { //没有增值服务
+				log.Warnf("%v no record time left", vorRecord.Imei)
+				//重新初始化并写入第一个包
+				vorRecord.PkgCnt = 0
+				vorRecord.FirstPacket = true
+				buffer, _ := ioutil.ReadAll(entity.Packet)
+				vorRecord.Writer.Write(buffer)
+				vorRecord.PkgCnt += 1
+				session.ReplyVorRecord(entity)
+				return
+			}
+
 			fileName := fmt.Sprintf("%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
 			fileSize := len(vorRecord.Writer.Bytes())
 			duration := calDuration(fileSize)
 			reader := bytes.NewReader(vorRecord.Writer.Bytes())
-			err := storage.UploadFile("record", fileName, reader, int64(fileSize))
+			err = storage.UploadFile("record", fileName, reader, int64(fileSize))
 			if err != nil {
 				log.Warnf("upload record failed %v", err)
 			}
@@ -491,6 +523,8 @@ func handle0118(session *server.Session, message *jt808.Message) {
 				log.Warnf("insert record failed %v", err)
 			}
 			vorRecord.Writer.Reset()
+
+			storage.UseAsValue(vorRecord.Imei, "2", duration)
 
 			//重新初始化并写入第一个包
 			vorRecord.PkgCnt = 0
