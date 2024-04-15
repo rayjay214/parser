@@ -30,7 +30,7 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 			log.Warnf("%v receive err %v", sess.ID(), err)
 			//实测发现,timeout之后,设备并不会重连,也就是不会发0102,所以session无法创建，而原先的session如果被删除之后,也就无法下发指令
 			if strings.Contains(err.Error(), "timed out") {
-				log.Warnf("%v timeout， wait", session.ID())
+				log.Warnf("timeout， wait")
 				continue
 			}
 			sess.Close()
