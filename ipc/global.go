@@ -21,6 +21,8 @@ const (
 	Msg_0x1301 MsgID = 0x1301
 
 	// 平台--》终端
+	// 鉴权回复
+	Msg_0x8000 MsgID = 0x8000
 	// 通用回复
 	Msg_0x8001 MsgID = 0x8001
 	// 文本消息下发
@@ -33,6 +35,8 @@ const (
 	Msg_0x8003 MsgID = 0x8003
 	// app通知设备播放事件
 	Msg_0x8004 MsgID = 0x8004
+	// app通知设备转发
+	Msg_0x8005 MsgID = 0x8005
 	// 指令下发
 	Msg_0x8301 MsgID = 0x8301
 )
@@ -58,6 +62,9 @@ var entityMapper = map[MsgID]func() Entity{
 		return new(Body_0x1301)
 	},
 
+	Msg_0x8000: func() Entity {
+		return new(Body_0x8000)
+	},
 	Msg_0x8001: func() Entity {
 		return new(Body_0x8001)
 	},
@@ -75,6 +82,9 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x8004: func() Entity {
 		return new(Body_0x8004)
+	},
+	Msg_0x8005: func() Entity {
+		return new(Body_0x8005)
 	},
 	Msg_0x8301: func() Entity {
 		return new(Body_0x8301)

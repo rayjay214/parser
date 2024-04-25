@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/qichengzx/coordtransform"
 	"github.com/rayjay214/parser/common"
 	"github.com/rayjay214/parser/jt808"
 	"github.com/rayjay214/parser/jt808/extra"
@@ -189,20 +190,22 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			return
 		}
 
+		wgsLng, wgsLat := coordtransform.GCJ02toWGS84(lbsResp.Lng, lbsResp.Lat)
+
 		loc = storage.Location{
 			Imei:      imei,
 			Date:      iDate,
 			Time:      entity.Time.Unix(),
 			Direction: entity.Direction,
-			Lat:       int64(lbsResp.Lat * 1000000),
-			Lng:       int64(lbsResp.Lng * 1000000),
+			Lat:       int64(wgsLng * 1000000),
+			Lng:       int64(wgsLat * 1000000),
 			Speed:     entity.Speed,
 			Type:      lbsResp.LocType + locTypeBase,
 			Wgs:       "",
 		}
 
-		info["lat"] = lbsResp.Lat
-		info["lng"] = lbsResp.Lng
+		info["lat"] = wgsLat
+		info["lng"] = wgsLng
 		info["loc_type"] = lbsResp.LocType + locTypeBase
 		info["loc_time"] = entity.Time
 
