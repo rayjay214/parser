@@ -20,6 +20,8 @@ const (
 	// 应答指令
 	Msg_0x1301 MsgID = 0x1301
 
+	Msg_0x0021 MsgID = 0x0021
+
 	// 平台--》终端
 	// 鉴权回复
 	Msg_0x8000 MsgID = 0x8000
@@ -39,6 +41,8 @@ const (
 	Msg_0x8005 MsgID = 0x8005
 	// 指令下发
 	Msg_0x8301 MsgID = 0x8301
+
+	Msg_0x8021 MsgID = 0x8021
 )
 
 // 消息实体映射
@@ -60,6 +64,9 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x1301: func() Entity {
 		return new(Body_0x1301)
+	},
+	Msg_0x0021: func() Entity {
+		return new(Body_0x0021)
 	},
 
 	Msg_0x8000: func() Entity {
@@ -88,5 +95,8 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x8301: func() Entity {
 		return new(Body_0x8301)
+	},
+	Msg_0x8021: func() Entity {
+		return new(Body_0x8021)
 	},
 }
