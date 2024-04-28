@@ -148,6 +148,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 	}
 
+	lastRunInfo, _ := storage.GetRunInfo(imei)
+
 	var loc storage.Location
 	if entity.Status.Positioning() {
 		var iLat, iLng int64
@@ -176,7 +178,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		info["lng"] = fLng
 		info["loc_type"] = 0 + locTypeBase
 		info["loc_time"] = entity.Time
-
+		info["gps_lat"] = fLat
+		info["gps_lng"] = fLng
 	} else {
 		var lbsResp LbsResp
 		err := getLbsLocation(entity, &lbsResp)
@@ -204,8 +207,11 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			Wgs:       "",
 		}
 
-		info["lat"] = wgsLat
-		info["lng"] = wgsLng
+		//wifi上报更新最后位置（基站的不更新），但是如果是首次上报位置，还是要更新基站
+		if lbsResp.LocType == 1 || lastRunInfo["lat"] == "" {
+			info["lat"] = wgsLat
+			info["lng"] = wgsLng
+		}
 		info["loc_type"] = lbsResp.LocType + locTypeBase
 		info["loc_time"] = entity.Time
 
