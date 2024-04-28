@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/rayjay214/link"
-	"github.com/rayjay214/parser/common"
 	"github.com/rayjay214/parser/jt808"
 	"github.com/rayjay214/parser/jt808/errors"
 	log "github.com/sirupsen/logrus"
@@ -179,11 +178,13 @@ func (codec *ProtocolCodec) readFromBuffer() (jt808.Message, bool, error) {
 	}
 	codec.bufferReceiving.Next(end + 1)
 
-	log.WithFields(log.Fields{
-		"id": fmt.Sprintf("0x%x", message.Header.MsgID),
-	}).Debug("[JT/T 808] new message received")
-	log.WithFields(log.Fields{
-		"data": fmt.Sprintf("0x%x", common.GetHex(data[:end+1])),
-	}).Debug("[JT/T 808] message hex string")
+	/*
+		log.WithFields(log.Fields{
+			"id": fmt.Sprintf("0x%x", message.Header.MsgID),
+		}).Debug("[JT/T 808] new message received")
+		log.WithFields(log.Fields{
+			"data": fmt.Sprintf("0x%x", common.GetHex(data[:end+1])),
+		}).Debug("[JT/T 808] message hex string")
+	*/
 	return message, true, nil
 }
