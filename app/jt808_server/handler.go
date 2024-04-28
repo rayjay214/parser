@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	geo "github.com/kellydunn/golang-geo"
 	"github.com/qichengzx/coordtransform"
 	"github.com/rayjay214/parser/common"
 	"github.com/rayjay214/parser/jt808"
@@ -180,6 +181,18 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		info["loc_time"] = entity.Time
 		info["gps_lat"] = fLat
 		info["gps_lng"] = fLng
+
+		if lastRunInfo["gps_lat"] != "" {
+			lastLat, _ := strconv.ParseFloat(lastRunInfo["gps_lat"], 64)
+			lastLng, _ := strconv.ParseFloat(lastRunInfo["gps_lng"], 64)
+			lastDayDistance, _ := strconv.Atoi(lastRunInfo["day_distance"])
+			lastTotalDistance, _ := strconv.Atoi(lastRunInfo["total_distance"])
+			point1 := geo.NewPoint(lastLat, lastLng)
+			point2 := geo.NewPoint(fLat, fLng)
+			distance := int(point1.GreatCircleDistance(point2) * 1000) //m
+			info["day_distance"] = lastDayDistance + distance
+			info["total_distance"] = lastTotalDistance + distance
+		}
 	} else {
 		var lbsResp LbsResp
 		err := getLbsLocation(entity, &lbsResp)
