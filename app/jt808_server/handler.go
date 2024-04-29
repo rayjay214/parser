@@ -213,19 +213,20 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			Date:      iDate,
 			Time:      entity.Time.Unix(),
 			Direction: entity.Direction,
-			Lat:       int64(wgsLng * 1000000),
-			Lng:       int64(wgsLat * 1000000),
+			Lat:       int64(wgsLat * 1000000),
+			Lng:       int64(wgsLng * 1000000),
 			Speed:     entity.Speed,
 			Type:      lbsResp.LocType + locTypeBase,
 			Wgs:       "",
 		}
 
 		//wifi上报更新最后位置（基站的不更新），但是如果是首次上报位置，还是要更新基站
-		if lbsResp.LocType == 1 || lastRunInfo["lat"] == "" {
+		if lbsResp.LocType == 2 || lastRunInfo["lat"] == "" {
 			info["lat"] = wgsLat
 			info["lng"] = wgsLng
+			info["loc_type"] = lbsResp.LocType + locTypeBase
 		}
-		info["loc_type"] = lbsResp.LocType + locTypeBase
+
 		info["loc_time"] = entity.Time
 
 		err = storage.InsertLocation(loc)
