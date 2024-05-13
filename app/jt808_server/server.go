@@ -63,5 +63,5 @@ func main() {
 	storage.InitMysql("172.28.32.224:8000")
 
 	go service.StartRpc(server)
-	server.Run("tcp", 12345)
+	server.Run("tcp", 22345)
 }

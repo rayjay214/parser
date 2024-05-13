@@ -63,6 +63,17 @@ func UpdateShakeValue(imei uint64, shakeValue int) error {
 	return err
 }
 
+func GetPhoneAndAlarm(imei uint64, alarmType string) (string, string) {
+	var bind_phone, dict_value string
+	row := MysqlDB.QueryRow("select bind_phone from device where imei=?", imei)
+	row.Scan(&bind_phone)
+
+	row = MysqlDB.QueryRow("select dict_label from sys_dict_data where dict_type=? and dict_value=?", "alarm_type", alarmType)
+	row.Scan(&dict_value)
+
+	return bind_phone, dict_value
+}
+
 func InsertAlarm(alarm Alarm) error {
 	log.Infof("insert alarm %v", alarm)
 	time := alarm.Time.Format("2006-01-02 15:04:05")
@@ -71,6 +82,20 @@ func InsertAlarm(alarm Alarm) error {
 	if err != nil {
 		log.Infof("alarm err %v", err)
 	}
+
+	//短信推送
+	err = CheckAsValue(alarm.Imei, "5")
+	if err != nil { //没有增值服务
+		log.Infof("%v no push service", alarm.Imei)
+		return nil
+	}
+	bindPhone, alarmName := GetPhoneAndAlarm(alarm.Imei, alarm.Type)
+	//推送
+	err = Send(bindPhone, fmt.Sprintf("%v", alarm.Imei), alarmName)
+	if err == nil {
+		UseAsValue(alarm.Imei, "5", 1)
+	}
+
 	return err
 }
 
@@ -96,6 +121,7 @@ func CheckAsValue(imei uint64, asType string) error {
 		"AND (total-used>0) AND service_type=? order by end_time limit 1",
 		imei, time.Now(), time.Now(), asType)
 
+	log.Infof("%v as type %v total %v used %v", imei, asType, total, used)
 	err := row.Scan(&total, &used)
 	return err
 }
