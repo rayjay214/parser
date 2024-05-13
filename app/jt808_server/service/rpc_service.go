@@ -177,7 +177,7 @@ func (s *deviceService) SetShakeValue(ctx context.Context, req *proto.SetShakeVa
 
 func StartRpc(tcpServer *server.Server) {
 	gJt808Server = tcpServer
-	lis, err := net.Listen("tcp", ":30051")
+	lis, err := net.Listen("tcp", ":40051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

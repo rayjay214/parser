@@ -127,10 +127,10 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			if protocol == 2 {
 				if v.SleepCheckWay == 1 {
 					if v.SleepStatus == 1 {
-						info["state"] = "2"
+						info["state"] = "3"
 						locTypeBase = 3
 					} else {
-						info["state"] = "3"
+						info["state"] = "2"
 					}
 				} else {
 					if entity.Status.GetAccState() {
@@ -221,11 +221,11 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 
 		//wifi上报更新最后位置（基站的不更新），但是如果是首次上报位置，还是要更新基站
-		if lbsResp.LocType == 2 || lastRunInfo["lat"] == "" {
-			info["lat"] = wgsLat
-			info["lng"] = wgsLng
-			info["loc_type"] = lbsResp.LocType + locTypeBase
-		}
+		//if lbsResp.LocType == 2 || lastRunInfo["lat"] == "" {
+		info["lat"] = wgsLat
+		info["lng"] = wgsLng
+		info["loc_type"] = lbsResp.LocType + locTypeBase
+		//}
 
 		info["loc_time"] = entity.Time
 
