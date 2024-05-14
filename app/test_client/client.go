@@ -31,7 +31,7 @@ func nextID() uint16 {
 
 func main() {
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", "47.107.69.24:22345")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "47.107.69.24:12345")
 	if err != nil {
 		panic(err)
 	}
