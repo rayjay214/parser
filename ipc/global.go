@@ -19,8 +19,20 @@ const (
 	Msg_0x1300 MsgID = 0x1300
 	// 应答指令
 	Msg_0x1301 MsgID = 0x1301
-
+	// 请求时间
 	Msg_0x0021 MsgID = 0x0021
+	// 返回文件列表
+	Msg_0x1201 MsgID = 0x1201
+	// 确认返回文件
+	Msg_0x1202 MsgID = 0x1202
+	// 通知服务器开始上传文件
+	Msg_0x1203 MsgID = 0x1203
+	// 上传文件
+	Msg_0x1204 MsgID = 0x1204
+	// 上传文件结果
+	Msg_0x1205 MsgID = 0x1205
+	// 返回月中有视频的日期
+	Msg_0x1206 MsgID = 0x1206
 
 	// 平台--》终端
 	// 鉴权回复
@@ -41,8 +53,20 @@ const (
 	Msg_0x8005 MsgID = 0x8005
 	// 指令下发
 	Msg_0x8301 MsgID = 0x8301
-
+	// 校时回复
 	Msg_0x8021 MsgID = 0x8021
+	// 请求终端录像文件列表
+	Msg_0x8201 MsgID = 0x8201
+	// 请求某个录像文件
+	Msg_0x8202 MsgID = 0x8202
+	// 回复1203
+	Msg_0x8203 MsgID = 0x8203
+	// 确认收到1204
+	Msg_0x8204 MsgID = 0x8204
+	// 回复1205
+	Msg_0x8205 MsgID = 0x8205
+	// 请求月中有视频的日期
+	Msg_0x8206 MsgID = 0x8206
 )
 
 // 消息实体映射
@@ -67,6 +91,24 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x0021: func() Entity {
 		return new(Body_0x0021)
+	},
+	Msg_0x1201: func() Entity {
+		return new(Body_0x1201)
+	},
+	Msg_0x1202: func() Entity {
+		return new(Body_0x1202)
+	},
+	Msg_0x1203: func() Entity {
+		return new(Body_0x1203)
+	},
+	Msg_0x1204: func() Entity {
+		return new(Body_0x1204)
+	},
+	Msg_0x1205: func() Entity {
+		return new(Body_0x1205)
+	},
+	Msg_0x1206: func() Entity {
+		return new(Body_0x1206)
 	},
 
 	Msg_0x8000: func() Entity {
@@ -98,5 +140,23 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x8021: func() Entity {
 		return new(Body_0x8021)
+	},
+	Msg_0x8201: func() Entity {
+		return new(Body_0x8201)
+	},
+	Msg_0x8202: func() Entity {
+		return new(Body_0x8202)
+	},
+	Msg_0x8203: func() Entity {
+		return new(Body_0x8203)
+	},
+	Msg_0x8204: func() Entity {
+		return new(Body_0x8204)
+	},
+	Msg_0x8205: func() Entity {
+		return new(Body_0x8205)
+	},
+	Msg_0x8206: func() Entity {
+		return new(Body_0x8206)
 	},
 }
