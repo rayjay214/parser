@@ -33,6 +33,8 @@ const (
 	Msg_0x1205 MsgID = 0x1205
 	// 返回月中有视频的日期
 	Msg_0x1206 MsgID = 0x1206
+	// 取消上传文件回复
+	Msg_0x1207 MsgID = 0x1207
 
 	// 平台--》终端
 	// 鉴权回复
@@ -67,6 +69,8 @@ const (
 	Msg_0x8205 MsgID = 0x8205
 	// 请求月中有视频的日期
 	Msg_0x8206 MsgID = 0x8206
+	// 取消文件上传
+	Msg_0x8207 MsgID = 0x8207
 )
 
 // 消息实体映射
@@ -109,6 +113,9 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x1206: func() Entity {
 		return new(Body_0x1206)
+	},
+	Msg_0x1207: func() Entity {
+		return new(Body_0x1207)
 	},
 
 	Msg_0x8000: func() Entity {
@@ -158,5 +165,8 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x8206: func() Entity {
 		return new(Body_0x8206)
+	},
+	Msg_0x8207: func() Entity {
+		return new(Body_0x8207)
 	},
 }

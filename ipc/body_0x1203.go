@@ -7,6 +7,7 @@ import (
 type Body_0x1203 struct {
 	Appid    string
 	Filename uint32
+	Filelen  uint32
 }
 
 func (entity *Body_0x1203) MsgID() MsgID {
@@ -19,6 +20,8 @@ func (entity *Body_0x1203) Encode() ([]byte, error) {
 	writer.WriteString(entity.Appid, 20)
 
 	writer.WriteUint32(entity.Filename)
+
+	writer.WriteUint32(entity.Filelen)
 
 	return writer.Bytes(), nil
 }
@@ -33,6 +36,11 @@ func (entity *Body_0x1203) Decode(data []byte) (int, error) {
 	}
 
 	entity.Filename, err = reader.ReadUint32()
+	if err != nil {
+		return 0, err
+	}
+
+	entity.Filelen, err = reader.ReadUint32()
 	if err != nil {
 		return 0, err
 	}
