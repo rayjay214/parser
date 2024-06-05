@@ -5,9 +5,11 @@ import (
 )
 
 type Body_0x8101 struct {
-	AppId string
-	Ip    string
-	Port  uint16
+	AppId       string
+	Ip          string
+	Port        uint16
+	PrivateIp   string
+	PrivatePort uint16
 }
 
 func (entity *Body_0x8101) MsgID() MsgID {
@@ -22,6 +24,10 @@ func (entity *Body_0x8101) Encode() ([]byte, error) {
 	writer.WriteString(entity.Ip, 20)
 
 	writer.WriteUint16(entity.Port)
+
+	writer.WriteString(entity.PrivateIp, 20)
+
+	writer.WriteUint16(entity.PrivatePort)
 
 	return writer.Bytes(), nil
 }
@@ -41,6 +47,16 @@ func (entity *Body_0x8101) Decode(data []byte) (int, error) {
 	}
 
 	entity.Port, err = reader.ReadUint16()
+	if err != nil {
+		return 0, err
+	}
+
+	entity.PrivateIp, err = reader.ReadString(20)
+	if err != nil {
+		return 0, err
+	}
+
+	entity.PrivatePort, err = reader.ReadUint16()
 	if err != nil {
 		return 0, err
 	}
