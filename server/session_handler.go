@@ -71,7 +71,9 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 
 		}
 
-		if message.Header.MsgID == jt808.MsgT808_0x0002 { //有时间服务器连接断了，删除session了，但是设备不知道，没有重连，没有上报0102
+		//有时间服务器连接断了，删除session了，但是设备不知道，没有重连，没有上报0102
+		if message.Header.MsgID == jt808.MsgT808_0x0002 ||
+			message.Header.MsgID == jt808.MsgT808_0x0200 { //兼容设备的bug,有时候重连的第一条消息是0200,又一直声控不上报心跳
 			_, ok := handler.server.sessions[message.Header.Imei]
 			if !ok {
 				log.Warnf("%v session lost, new one", message.Header.Imei)
