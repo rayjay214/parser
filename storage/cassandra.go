@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/gocql/gocql"
+	"time"
 )
 
 var (
@@ -12,6 +13,9 @@ func InitCass(host string) {
 	cluster = gocql.NewCluster(host) // Replace with source Cassandra node IP
 	cluster.Keyspace = "gps"
 	cluster.Consistency = gocql.LocalOne
+	cluster.Timeout = 10 * time.Second
+	cluster.ConnectTimeout = 10 * time.Second
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 2}
 }
 
 func GetSession() (*gocql.Session, error) {
