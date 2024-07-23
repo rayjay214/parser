@@ -13,8 +13,14 @@ const (
 	Msg_0x0002 MsgID = 0x0002
 	// 上报公网信息
 	Msg_0x0003 MsgID = 0x0003
-	// 通知开启转发
+	// 设备状态信息
 	Msg_0x0004 MsgID = 0x0004
+	// 设备状态信息扩展
+	Msg_0x0005 MsgID = 0x0005
+	// 请求最新版本
+	Msg_0x0011 MsgID = 0x0011
+	// 请求升级文件数据
+	Msg_0x0012 MsgID = 0x0012
 	// 应答文本消息
 	Msg_0x1300 MsgID = 0x1300
 	// 应答指令
@@ -71,6 +77,10 @@ const (
 	Msg_0x8206 MsgID = 0x8206
 	// 取消文件上传
 	Msg_0x8207 MsgID = 0x8207
+	// 返回最新版本号
+	Msg_0x0091 MsgID = 0x0091
+	// 返回升级文件数据
+	Msg_0x0092 MsgID = 0x0092
 )
 
 // 消息实体映射
@@ -86,6 +96,15 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x0004: func() Entity {
 		return new(Body_0x0004)
+	},
+	Msg_0x0005: func() Entity {
+		return new(Body_0x0005)
+	},
+	Msg_0x0011: func() Entity {
+		return new(Body_0x0011)
+	},
+	Msg_0x0012: func() Entity {
+		return new(Body_0x0012)
 	},
 	Msg_0x1300: func() Entity {
 		return new(Body_0x1300)
@@ -168,5 +187,11 @@ var entityMapper = map[MsgID]func() Entity{
 	},
 	Msg_0x8207: func() Entity {
 		return new(Body_0x8207)
+	},
+	Msg_0x0091: func() Entity {
+		return new(Body_0x0091)
+	},
+	Msg_0x0092: func() Entity {
+		return new(Body_0x0092)
 	},
 }

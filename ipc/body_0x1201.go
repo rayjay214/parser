@@ -10,6 +10,8 @@ type SdFile struct {
 }
 
 type Body_0x1201 struct {
+	PkgNo    uint8
+	PkgCnt   uint8
 	Appid    string
 	Seq      uint16
 	FileType string
@@ -23,6 +25,10 @@ func (entity *Body_0x1201) MsgID() MsgID {
 
 func (entity *Body_0x1201) Encode() ([]byte, error) {
 	writer := NewWriter()
+
+	writer.WriteByte(entity.PkgNo)
+
+	writer.WriteByte(entity.PkgCnt)
 
 	writer.WriteString(entity.Appid, 20)
 
@@ -44,6 +50,16 @@ func (entity *Body_0x1201) Decode(data []byte) (int, error) {
 	reader := NewReader(data)
 
 	var err error
+	entity.PkgNo, err = reader.ReadByte()
+	if err != nil {
+		return 0, err
+	}
+
+	entity.PkgCnt, err = reader.ReadByte()
+	if err != nil {
+		return 0, err
+	}
+
 	entity.Appid, err = reader.ReadString(20)
 	if err != nil {
 		return 0, err

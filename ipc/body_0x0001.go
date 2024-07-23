@@ -5,6 +5,7 @@ import (
 )
 
 type Body_0x0001 struct {
+	Version string //固件版本
 }
 
 func (entity *Body_0x0001) MsgID() MsgID {
@@ -14,11 +15,22 @@ func (entity *Body_0x0001) MsgID() MsgID {
 func (entity *Body_0x0001) Encode() ([]byte, error) {
     writer := NewWriter()
 
-    return writer.Bytes(), nil
+	writer.WriteString(entity.Version, 32)
+
+	return writer.Bytes(), nil
 }
 
 func (entity *Body_0x0001) Decode(data []byte) (int, error) {
     reader := NewReader(data)
 
-    return len(data) - reader.Len(), nil
+	//兼容老版本
+	if len(data) > 30 {
+		var err error
+		entity.Version, err = reader.ReadString(32)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return len(data) - reader.Len(), nil
 }
