@@ -134,9 +134,9 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 					}
 				} else {
 					if entity.Status.GetAccState() {
-						info["state"] = "3"
-					} else {
 						info["state"] = "2"
+					} else {
+						info["state"] = "3"
 						locTypeBase = 3
 					}
 				}
