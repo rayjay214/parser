@@ -25,7 +25,7 @@ func (entity *Body_0x0091) Encode() ([]byte, error) {
 
 	writer.WriteUint32(entity.Crc)
 
-	writer.WriteString(entity.OtaIp, 20)
+	writer.WriteString(entity.OtaIp, 32)
 
 	writer.WriteUint16(entity.OtaPort)
 
@@ -51,7 +51,7 @@ func (entity *Body_0x0091) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 
-	entity.OtaIp, err = reader.ReadString(20)
+	entity.OtaIp, err = reader.ReadString(32)
 	if err != nil {
 		return 0, err
 	}
