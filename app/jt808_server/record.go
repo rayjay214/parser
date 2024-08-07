@@ -1,22 +1,22 @@
 package main
 
 import (
-    "github.com/rayjay214/parser/common"
-    "time"
+	"github.com/rayjay214/parser/protocol/common"
+	"time"
 )
 
 type ShortRecord struct {
-    Imei      uint64
-    Writer    common.Writer
-    StartTime time.Time
-    Schedule  float32
+	Imei      uint64
+	Writer    common.Writer
+	StartTime time.Time
+	Schedule  float32
 }
 
 type VorRecord struct {
-    Imei        uint64
-    Writer      common.Writer
-    StartTime   time.Time
-    EndTime     time.Time
-    FirstPacket bool
-    PkgCnt      int32
+	Imei        uint64
+	Writer      common.Writer
+	StartTime   time.Time
+	EndTime     time.Time
+	FirstPacket bool
+	PkgCnt      int32
 }

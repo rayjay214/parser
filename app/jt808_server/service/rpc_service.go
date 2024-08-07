@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 	"github.com/rayjay214/parser/app/jt808_server/service/proto"
-	"github.com/rayjay214/parser/common"
-	"github.com/rayjay214/parser/server"
+	"github.com/rayjay214/parser/protocol/common"
+	"github.com/rayjay214/parser/server_base/jt808_base"
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
 )
 
-var gJt808Server *server.Server
+var gJt808Server *jt808_base.Server
 
 type deviceService struct {
 	proto.UnimplementedDeviceServiceServer
@@ -175,7 +175,7 @@ func (s *deviceService) SetShakeValue(ctx context.Context, req *proto.SetShakeVa
 	return &resp, nil
 }
 
-func StartRpc(tcpServer *server.Server) {
+func StartRpc(tcpServer *jt808_base.Server) {
 	gJt808Server = tcpServer
 	lis, err := net.Listen("tcp", ":40051")
 	if err != nil {

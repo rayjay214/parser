@@ -1,198 +1,198 @@
 package main
 
 import (
-    "encoding/binary"
-    "encoding/hex"
-    "encoding/json"
-    _ "fmt"
-    "github.com/rayjay214/parser/cmpp"
-    "github.com/rayjay214/parser/ipc"
-    "github.com/rayjay214/parser/jt808"
-    "github.com/rayjay214/parser/kks"
-    "github.com/rayjay214/parser/ota"
-    "github.com/rayjay214/parser/th"
-    "github.com/rayjay214/parser/tq"
-    log "github.com/sirupsen/logrus"
-    "io/ioutil"
-    "net/http"
-    "os"
-    "github.com/rayjay214/parser/common"
-    "strings"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+	_ "fmt"
+	"github.com/rayjay214/parser/protocol/cmpp"
+	"github.com/rayjay214/parser/protocol/common"
+	"github.com/rayjay214/parser/protocol/ipc"
+	"github.com/rayjay214/parser/protocol/jt808"
+	"github.com/rayjay214/parser/protocol/kks"
+	"github.com/rayjay214/parser/protocol/ota"
+	"github.com/rayjay214/parser/protocol/th"
+	"github.com/rayjay214/parser/protocol/tq"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
 )
 
 type RawInfo struct {
-    Raws []string `json:"raws"`
+	Raws []string `json:"raws"`
 }
 
 type ParsedInfo struct {
-    Parsed []string `json:"parsed"`
+	Parsed []string `json:"parsed"`
 }
 
 func init() {
-    f, err := os.OpenFile("parser.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
-    if err != nil {
-        log.Fatal(err)
-    }
-    log.SetOutput(f)
-    log.SetLevel(log.InfoLevel)
-    log.SetReportCaller(true)
-    log.SetFormatter(&log.TextFormatter{TimestampFormat: "2006-01-02 15:04:05"})
-    log.Info("init log done")
+	f, err := os.OpenFile("parser.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(f)
+	log.SetLevel(log.InfoLevel)
+	log.SetReportCaller(true)
+	log.SetFormatter(&log.TextFormatter{TimestampFormat: "2006-01-02 15:04:05"})
+	log.Info("init log done")
 }
 
 func ParseHandler(writer http.ResponseWriter, request *http.Request) {
-    v := request.URL.Query()
-    hexStr := v["hexstr"][0]
+	v := request.URL.Query()
+	hexStr := v["hexstr"][0]
 
-    if len(hexStr) == 0 {
-        return
-    }
+	if len(hexStr) == 0 {
+		return
+	}
 
-    var err interface{}
-    var data []byte
-    var out []byte
-    if hexStr[0] == '*' {
-        data = []byte(hexStr)
-    } else if strings.HasPrefix(hexStr, "Gpslocation") || strings.HasPrefix(hexStr, "Lbslocation") || strings.HasPrefix(hexStr, "#006") || strings.HasPrefix(hexStr, "#007") {
-        data = []byte(hexStr)
-        log.Warn("Parse gps location: ")
-        message := new(th.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-        writer.Write(out)
-        return
-    } else {
-        data, err = hex.DecodeString(hexStr)
-        if err != nil {
-            return
-        }
-    }
+	var err interface{}
+	var data []byte
+	var out []byte
+	if hexStr[0] == '*' {
+		data = []byte(hexStr)
+	} else if strings.HasPrefix(hexStr, "Gpslocation") || strings.HasPrefix(hexStr, "Lbslocation") || strings.HasPrefix(hexStr, "#006") || strings.HasPrefix(hexStr, "#007") {
+		data = []byte(hexStr)
+		log.Warn("Parse gps location: ")
+		message := new(th.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+		writer.Write(out)
+		return
+	} else {
+		data, err = hex.DecodeString(hexStr)
+		if err != nil {
+			return
+		}
+	}
 
-    prefix := data[0]
-    switch prefix {
-    case 0x7e:
-        msg_id := binary.BigEndian.Uint16(data[1:])
-        var transformed_data []byte
-        if msg_id > 0x8000 {
-            transformed_data = data
-        } else {
-            transformed_data = common.Transform808(data)
-        }
-        message := new(jt808.Message)
-        message.Decode(transformed_data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case 0x78:
-        message := new(kks.Message_0x78)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case 0x79:
-        message := new(kks.Message_0x79)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case 0x68:
-        message := new(ota.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case 0x86:
-        message := new(ipc.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case '*':
-        message := new(tq.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case '$':
-        message := new(tq.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    case 0x00:
-        message := new(cmpp.Message)
-        message.Decode(data)
-        out, _ = json.MarshalIndent(message, "", "   ")
-    }
-    writer.Write(out)
+	prefix := data[0]
+	switch prefix {
+	case 0x7e:
+		msg_id := binary.BigEndian.Uint16(data[1:])
+		var transformed_data []byte
+		if msg_id > 0x8000 {
+			transformed_data = data
+		} else {
+			transformed_data = common.Transform808(data)
+		}
+		message := new(jt808.Message)
+		message.Decode(transformed_data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x78:
+		message := new(kks.Message_0x78)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x79:
+		message := new(kks.Message_0x79)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x68:
+		message := new(ota.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x86:
+		message := new(ipc.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case '*':
+		message := new(tq.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case '$':
+		message := new(tq.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x00:
+		message := new(cmpp.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	}
+	writer.Write(out)
 }
 
 func BatchParseHandler(writer http.ResponseWriter, request *http.Request) {
-    var parsedInfo ParsedInfo
-    body, _ := ioutil.ReadAll(request.Body)
-    var info RawInfo
-    json.Unmarshal(body, &info)
+	var parsedInfo ParsedInfo
+	body, _ := ioutil.ReadAll(request.Body)
+	var info RawInfo
+	json.Unmarshal(body, &info)
 
-    var data []byte
-    var err interface{}
-    parsedInfo.Parsed = make([]string, 0)
-    for i := range info.Raws {
-        hexStr := info.Raws[i]
+	var data []byte
+	var err interface{}
+	parsedInfo.Parsed = make([]string, 0)
+	for i := range info.Raws {
+		hexStr := info.Raws[i]
 
-        if len(hexStr) == 0 {
-            log.Warn("Empty str")
-            parsedInfo.Parsed = append(parsedInfo.Parsed, "")
-            continue
-        }
+		if len(hexStr) == 0 {
+			log.Warn("Empty str")
+			parsedInfo.Parsed = append(parsedInfo.Parsed, "")
+			continue
+		}
 
-        var out []byte
-        if hexStr[0] == '*' {
-            data = []byte(hexStr)
-        } else if strings.HasPrefix(hexStr, "Gpslocation") || strings.HasPrefix(hexStr, "Lbslocation") || strings.HasPrefix(hexStr, "#006") || strings.HasPrefix(hexStr, "#007") {
-            data = []byte(hexStr)
-            message := new(th.Message)
-            message.Decode(data)
-            out, _ = json.MarshalIndent(message, "", "   ")
-            parsedInfo.Parsed = append(parsedInfo.Parsed, string(out))
-            continue
-        } else {
-            data, err = hex.DecodeString(hexStr)
-            if err != nil {
-                log.Warn("Decode Error: ", err)
-                parsedInfo.Parsed = append(parsedInfo.Parsed, "parse error")
-                continue
-            }
-        }
+		var out []byte
+		if hexStr[0] == '*' {
+			data = []byte(hexStr)
+		} else if strings.HasPrefix(hexStr, "Gpslocation") || strings.HasPrefix(hexStr, "Lbslocation") || strings.HasPrefix(hexStr, "#006") || strings.HasPrefix(hexStr, "#007") {
+			data = []byte(hexStr)
+			message := new(th.Message)
+			message.Decode(data)
+			out, _ = json.MarshalIndent(message, "", "   ")
+			parsedInfo.Parsed = append(parsedInfo.Parsed, string(out))
+			continue
+		} else {
+			data, err = hex.DecodeString(hexStr)
+			if err != nil {
+				log.Warn("Decode Error: ", err)
+				parsedInfo.Parsed = append(parsedInfo.Parsed, "parse error")
+				continue
+			}
+		}
 
-        prefix := data[0]
-        switch prefix {
-        case 0x7e:
-            msg_id := binary.BigEndian.Uint16(data[1:])
-            var transformed_data []byte
-            if msg_id > 0x8000 {
-                transformed_data = data
-            } else {
-                transformed_data = common.Transform808(data)
-            }
-            message := new(jt808.Message)
-            message.Decode(transformed_data)
-            out, _ = json.Marshal(message)
-        case 0x78:
-            message := new(kks.Message_0x78)
-            message.Decode(data)
-            out, _ = json.Marshal(message)
-        case 0x79:
-            message := new(kks.Message_0x79)
-            message.Decode(data)
-            out, _ = json.Marshal(message)
-        case 0x68:
-            message := new(ota.Message)
-            message.Decode(data)
-            out, _ = json.Marshal(message)
-        case '*':
-            message := new(tq.Message)
-            message.Decode(data)
-            out, _ = json.Marshal(message)
-        case '$':
-            message := new(tq.Message)
-            message.Decode(data)
-            out, _ = json.Marshal(message)
-        }
-        parsedInfo.Parsed = append(parsedInfo.Parsed, string(out))
-    }
-    p, _ := json.Marshal(parsedInfo)
+		prefix := data[0]
+		switch prefix {
+		case 0x7e:
+			msg_id := binary.BigEndian.Uint16(data[1:])
+			var transformed_data []byte
+			if msg_id > 0x8000 {
+				transformed_data = data
+			} else {
+				transformed_data = common.Transform808(data)
+			}
+			message := new(jt808.Message)
+			message.Decode(transformed_data)
+			out, _ = json.Marshal(message)
+		case 0x78:
+			message := new(kks.Message_0x78)
+			message.Decode(data)
+			out, _ = json.Marshal(message)
+		case 0x79:
+			message := new(kks.Message_0x79)
+			message.Decode(data)
+			out, _ = json.Marshal(message)
+		case 0x68:
+			message := new(ota.Message)
+			message.Decode(data)
+			out, _ = json.Marshal(message)
+		case '*':
+			message := new(tq.Message)
+			message.Decode(data)
+			out, _ = json.Marshal(message)
+		case '$':
+			message := new(tq.Message)
+			message.Decode(data)
+			out, _ = json.Marshal(message)
+		}
+		parsedInfo.Parsed = append(parsedInfo.Parsed, string(out))
+	}
+	p, _ := json.Marshal(parsedInfo)
 
-    writer.Write([]byte(p))
+	writer.Write([]byte(p))
 }
 
 func main() {
-    http.HandleFunc("/parse", ParseHandler)
-    http.HandleFunc("/batch_parse", BatchParseHandler)
-    http.ListenAndServe("0.0.0.0:8081", nil)
+	http.HandleFunc("/parse", ParseHandler)
+	http.HandleFunc("/batch_parse", BatchParseHandler)
+	http.ListenAndServe("0.0.0.0:8081", nil)
 }

@@ -1,2 +1,13 @@
 $env:GOOS = "windows"
 $env:GOOS = "linux"
+
+
+go build -ldflags="-H windowsgui"
+
+pk.bb748de36eaf67028513231becf798a0
+
+stun.12voip.com:3478
+
+git push -u origin rayjay:dev_rayjay
+
+org.gradle.java.home=C:/Program Files/Java/jdk-18.0.2.1

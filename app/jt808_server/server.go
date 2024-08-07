@@ -3,8 +3,8 @@ package main
 import (
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rayjay214/parser/app/jt808_server/service"
-	"github.com/rayjay214/parser/jt808"
-	"github.com/rayjay214/parser/server"
+	"github.com/rayjay214/parser/protocol/jt808"
+	"github.com/rayjay214/parser/server_base/jt808_base"
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -26,7 +26,7 @@ func init() {
 }
 
 func main() {
-	server, _ := server.NewServer(server.Options{
+	server, _ := jt808_base.NewServer(jt808_base.Options{
 		Keepalive:       420,
 		AutoMergePacket: true,
 		CloseHandler:    nil,
