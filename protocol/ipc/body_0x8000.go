@@ -9,6 +9,8 @@ type Body_0x8000 struct {
 	RelayIp   string //转发服务IP
 	RelayPort uint16 //转发服务端口
 	RtpPort   uint16 //直推端口
+	StunIp    string //stunIp
+	StunPort  uint16 //stunPort
 }
 
 func (entity *Body_0x8000) MsgID() MsgID {
@@ -25,6 +27,10 @@ func (entity *Body_0x8000) Encode() ([]byte, error) {
 	writer.WriteUint16(entity.RelayPort)
 
 	writer.WriteUint16(entity.RtpPort)
+
+	writer.WriteString(entity.StunIp, 32)
+
+	writer.WriteUint16(entity.StunPort)
 
 	return writer.Bytes(), nil
 }
@@ -49,6 +55,16 @@ func (entity *Body_0x8000) Decode(data []byte) (int, error) {
 	}
 
 	entity.RtpPort, err = reader.ReadUint16()
+	if err != nil {
+		return 0, err
+	}
+
+	entity.StunIp, err = reader.ReadString(32)
+	if err != nil {
+		return 0, err
+	}
+
+	entity.StunPort, err = reader.ReadUint16()
 	if err != nil {
 		return 0, err
 	}

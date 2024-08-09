@@ -7,6 +7,7 @@ import (
 	_ "fmt"
 	"github.com/rayjay214/parser/protocol/cmpp"
 	"github.com/rayjay214/parser/protocol/common"
+	"github.com/rayjay214/parser/protocol/gmconf"
 	"github.com/rayjay214/parser/protocol/ipc"
 	"github.com/rayjay214/parser/protocol/jt808"
 	"github.com/rayjay214/parser/protocol/kks"
@@ -91,6 +92,10 @@ func ParseHandler(writer http.ResponseWriter, request *http.Request) {
 		out, _ = json.MarshalIndent(message, "", "   ")
 	case 0x68:
 		message := new(ota.Message)
+		message.Decode(data)
+		out, _ = json.MarshalIndent(message, "", "   ")
+	case 0x66:
+		message := new(gmconf.Message)
 		message.Decode(data)
 		out, _ = json.MarshalIndent(message, "", "   ")
 	case 0x86:
