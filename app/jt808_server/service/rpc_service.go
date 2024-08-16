@@ -104,6 +104,8 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 
 	writer := common.NewWriter()
 
+	content := ""
+
 	switch req.Protocol {
 	case "1", "2":
 		switch req.Mode {
@@ -120,9 +122,27 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 			writer.WriteByte(7)
 			writer.WriteUint16(300)
 		}
+	case "3":
+		switch req.Mode {
+		case "1":
+			content = "TIME#1#"
+		case "2":
+			content = "TIME#10#"
+		case "4":
+			content = "TIME#30#"
+		}
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
+	}
+
+	if req.Protocol == "3" {
+		seqNo, err := session.SendCmd(content)
+		if err != nil {
+			return &resp, err
+		}
+		storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode)
+		return &resp, nil
 	}
 
 	param := writer.Bytes()

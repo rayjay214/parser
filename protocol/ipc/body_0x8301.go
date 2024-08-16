@@ -6,7 +6,7 @@ import (
 
 type Body_0x8301 struct {
 	Cmd     uint8
-	Len     uint8
+	Len     uint16
 	Content string
 }
 
@@ -19,7 +19,7 @@ func (entity *Body_0x8301) Encode() ([]byte, error) {
 
 	writer.WriteByte(entity.Cmd)
 
-	writer.WriteByte(entity.Len)
+	writer.WriteUint16(entity.Len)
 
 	writer.WriteString(entity.Content, int(entity.Len))
 
@@ -35,7 +35,7 @@ func (entity *Body_0x8301) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 
-	entity.Len, err = reader.ReadByte()
+	entity.Len, err = reader.ReadUint16()
 	if err != nil {
 		return 0, err
 	}

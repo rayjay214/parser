@@ -78,7 +78,7 @@ func (entity *T808_0x0107) Encode() ([]byte, error) {
 }
 
 func (entity *T808_0x0107) Decode(data []byte) (int, error) {
-	if len(data) < 48 {
+	if len(data) < 28 {
 		return 0, errors.ErrInvalidBody
 	}
 	reader := common.NewReader(data)
