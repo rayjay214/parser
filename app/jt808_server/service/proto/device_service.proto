@@ -54,6 +54,19 @@ message SetShakeValueRequest {
   int32 shake_value = 4;
 }
 
+message HandelDeviceCtrlRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  uint64 time_id = 3; //cmd的key
+  int32 cmd = 4; //命令字
+}
+
+message HandelRestartRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  uint64 time_id = 3; //cmd的key
+}
+
 service DeviceService {
   rpc SendCmd (SendCmdRequest) returns (SendCmdReply);  //下发短信指令
   rpc OpenShortRecord(OpenShortRecordRequest) returns (CommonReply); //开启短录音
@@ -61,5 +74,7 @@ service DeviceService {
   rpc SetLocMode(SetLocModeRequest) returns (CommonReply); //设置定位模式
   rpc Locate(LocateRequest) returns (CommonReply); //立即定位
   rpc SetShakeValue(SetShakeValueRequest) returns (CommonReply); //设置震动报警阈值
+  rpc HandelDeviceCtrl(HandelDeviceCtrlRequest) returns (CommonReply); //设置终端参数0x8105
+  rpc HandelRestart(HandelRestartRequest) returns (CommonReply); //设置终端参数0x8155
 }
 

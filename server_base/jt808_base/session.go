@@ -246,6 +246,20 @@ func (session *Session) SetShakeValue(value int32) (uint16, error) {
 	return session.Send(&entity)
 }
 
+// 0x8105
+func (session *Session) DeviceCtrl(cmd byte) (uint16, error) {
+	entity := jt808.T808_0x8105{
+		Cmd: cmd,
+	}
+	return session.Send(&entity)
+}
+
+// 0x8155
+func (session *Session) DeviceRestart() (uint16, error) {
+	entity := jt808.T808_0x8155{}
+	return session.Send(&entity)
+}
+
 // 发起请求
 func (session *Session) Request(entity jt808.Entity, cb func(answer *jt808.Message)) (uint16, error) {
 	serialNo, err := session.Send(entity)

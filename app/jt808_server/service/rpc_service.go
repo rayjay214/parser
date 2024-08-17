@@ -195,6 +195,46 @@ func (s *deviceService) SetShakeValue(ctx context.Context, req *proto.SetShakeVa
 	return &resp, nil
 }
 
+func (s *deviceService) HandelDeviceCtrl(ctx context.Context, req *proto.HandelDeviceCtrlRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	seqNo, err := session.DeviceCtrl(byte(req.Cmd))
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+
+	return &resp, nil
+}
+
+func (s *deviceService) HandelRestart(ctx context.Context, req *proto.HandelRestartRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	seqNo, err := session.DeviceRestart()
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+
+	return &resp, nil
+}
+
 func StartRpc(tcpServer *jt808_base.Server) {
 	gJt808Server = tcpServer
 	lis, err := net.Listen("tcp", ":40051")

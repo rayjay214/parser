@@ -28,6 +28,8 @@ type DeviceServiceClient interface {
 	SetLocMode(ctx context.Context, in *SetLocModeRequest, opts ...grpc.CallOption) (*CommonReply, error)
 	Locate(ctx context.Context, in *LocateRequest, opts ...grpc.CallOption) (*CommonReply, error)
 	SetShakeValue(ctx context.Context, in *SetShakeValueRequest, opts ...grpc.CallOption) (*CommonReply, error)
+	HandelDeviceCtrl(ctx context.Context, in *HandelDeviceCtrlRequest, opts ...grpc.CallOption) (*CommonReply, error)
+	HandelRestart(ctx context.Context, in *HandelRestartRequest, opts ...grpc.CallOption) (*CommonReply, error)
 }
 
 type deviceServiceClient struct {
@@ -92,6 +94,24 @@ func (c *deviceServiceClient) SetShakeValue(ctx context.Context, in *SetShakeVal
 	return out, nil
 }
 
+func (c *deviceServiceClient) HandelDeviceCtrl(ctx context.Context, in *HandelDeviceCtrlRequest, opts ...grpc.CallOption) (*CommonReply, error) {
+	out := new(CommonReply)
+	err := c.cc.Invoke(ctx, "/service.DeviceService/HandelDeviceCtrl", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceServiceClient) HandelRestart(ctx context.Context, in *HandelRestartRequest, opts ...grpc.CallOption) (*CommonReply, error) {
+	out := new(CommonReply)
+	err := c.cc.Invoke(ctx, "/service.DeviceService/HandelRestart", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DeviceServiceServer is the server API for DeviceService service.
 // All implementations must embed UnimplementedDeviceServiceServer
 // for forward compatibility
@@ -102,6 +122,8 @@ type DeviceServiceServer interface {
 	SetLocMode(context.Context, *SetLocModeRequest) (*CommonReply, error)
 	Locate(context.Context, *LocateRequest) (*CommonReply, error)
 	SetShakeValue(context.Context, *SetShakeValueRequest) (*CommonReply, error)
+	HandelDeviceCtrl(context.Context, *HandelDeviceCtrlRequest) (*CommonReply, error)
+	HandelRestart(context.Context, *HandelRestartRequest) (*CommonReply, error)
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -126,6 +148,12 @@ func (UnimplementedDeviceServiceServer) Locate(context.Context, *LocateRequest) 
 }
 func (UnimplementedDeviceServiceServer) SetShakeValue(context.Context, *SetShakeValueRequest) (*CommonReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetShakeValue not implemented")
+}
+func (UnimplementedDeviceServiceServer) HandelDeviceCtrl(context.Context, *HandelDeviceCtrlRequest) (*CommonReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandelDeviceCtrl not implemented")
+}
+func (UnimplementedDeviceServiceServer) HandelRestart(context.Context, *HandelRestartRequest) (*CommonReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandelRestart not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 
@@ -248,6 +276,42 @@ func _DeviceService_SetShakeValue_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceService_HandelDeviceCtrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandelDeviceCtrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).HandelDeviceCtrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.DeviceService/HandelDeviceCtrl",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).HandelDeviceCtrl(ctx, req.(*HandelDeviceCtrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceService_HandelRestart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandelRestartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).HandelRestart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.DeviceService/HandelRestart",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).HandelRestart(ctx, req.(*HandelRestartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DeviceService_ServiceDesc is the grpc.ServiceDesc for DeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +342,14 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetShakeValue",
 			Handler:    _DeviceService_SetShakeValue_Handler,
+		},
+		{
+			MethodName: "HandelDeviceCtrl",
+			Handler:    _DeviceService_HandelDeviceCtrl_Handler,
+		},
+		{
+			MethodName: "HandelRestart",
+			Handler:    _DeviceService_HandelRestart_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
