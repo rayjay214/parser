@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "parser/service/proto";
+
+message SendCmdRequest {
+  string protocol = 1;
+  uint64 imei = 2;  //设备号
+  string content = 3;  //指令内容
+  uint64 time_id = 4; //cmd的key
+}
+
+message SendCmdReply {
+  string message = 1;
+}
+
+message CommonReply {
+  string message = 1;
+}
+
+message OpenShortRecordRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  int64 seconds = 3; //录音时长，0表示持续录音
+  uint64 time_id = 4; //cmd的key
+}
+
+message VorRecordSwitchRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  int32 switch = 3;
+  uint64 time_id = 4; //cmd的key
+}
+
+message SetLocModeRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  uint64 time_id = 3; //cmd的key
+  string mode = 4;
+  int32 interval = 5;  //省电模式定位间隔
+}
+
+message LocateRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  uint64 time_id = 3; //cmd的key
+}
+
+message SetShakeValueRequest {
+  string protocol = 1;
+  uint64 imei = 2;
+  uint64 time_id = 3; //cmd的key
+  int32 shake_value = 4;
+}
+
+service DeviceService {
+  rpc SendCmd (SendCmdRequest) returns (SendCmdReply);  //下发短信指令
+  rpc OpenShortRecord(OpenShortRecordRequest) returns (CommonReply); //开启短录音
+  rpc VorRecordSwitch(VorRecordSwitchRequest) returns (CommonReply); //声控开关
+  rpc SetLocMode(SetLocModeRequest) returns (CommonReply); //设置定位模式
+  rpc Locate(LocateRequest) returns (CommonReply); //立即定位
+  rpc SetShakeValue(SetShakeValueRequest) returns (CommonReply); //设置震动报警阈值
+}
+
