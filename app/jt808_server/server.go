@@ -15,8 +15,8 @@ func init() {
 	writer, _ := rotatelogs.New(
 		path+".%Y%m%d%H%M",
 		rotatelogs.WithLinkName(path),
-		rotatelogs.WithMaxAge(time.Duration(10*24)*time.Hour),
-		rotatelogs.WithRotationTime(time.Duration(7*24)*time.Hour),
+		rotatelogs.WithMaxAge(time.Duration(5*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Duration(24)*time.Hour),
 	)
 	log.SetOutput(writer)
 	log.SetLevel(log.DebugLevel)
