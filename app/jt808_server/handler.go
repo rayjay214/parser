@@ -33,7 +33,8 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	}
 
 	info := map[string]interface{}{
-		"status":    "2",
+		"status":    "2", //maybe useless
+		"state":     "3",
 		"comm_time": time.Now(),
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
