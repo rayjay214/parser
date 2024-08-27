@@ -26,6 +26,8 @@ func init() {
 }
 
 func main() {
+	storage.LoadConfig("config.ini")
+	storage.InitRawLog()
 	server, _ := jt808_base.NewServer(jt808_base.Options{
 		Keepalive:       420,
 		AutoMergePacket: true,

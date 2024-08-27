@@ -179,10 +179,6 @@ func (server *Server) handleReadTimeout(key string) {
 
 // 分派消息
 func (server *Server) dispatchMessage(session *Session, message *jt808.Message) {
-	log.WithFields(log.Fields{
-		"id": fmt.Sprintf("0x%x", message.Header.MsgID),
-	}).Debug("[JT/T 808] dispatch message")
-
 	handler, ok := server.messageHandlers.Load(message.Header.MsgID)
 	if !ok {
 		log.WithFields(log.Fields{
@@ -196,7 +192,7 @@ func (server *Server) dispatchMessage(session *Session, message *jt808.Message) 
 			debug.PrintStack()
 		}
 	}()
-	log.Infof("%v rayjay update timer", session.ID())
+
 	server.timer.Update(strconv.FormatUint(session.ID(), 10))
 	handler.(MessageHandler)(session, message)
 }

@@ -2,9 +2,11 @@ package jt808_base
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"github.com/rayjay214/link"
 	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/protocol/jt808"
+	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"runtime/debug"
 	"strconv"
@@ -82,7 +84,12 @@ func (session *Session) Send(entity jt808.Entity) (uint16, error) {
 	}
 
 	data, _ := message.Encode()
-	log.Printf("send cmd %x", common.GetHex(data))
+	//log.Printf("send cmd %x", common.GetHex(data))
+	storage.RawLogChannel <- storage.LogRow{
+		Imei:      session.ID(),
+		Direction: "S",
+		Message:   fmt.Sprintf("%x", common.GetHex(data)),
+	}
 
 	err := session.session.Send(message)
 	if err != nil {

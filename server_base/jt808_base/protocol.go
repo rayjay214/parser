@@ -9,6 +9,7 @@ import (
 	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/protocol/jt808"
 	"github.com/rayjay214/parser/protocol/jt808/errors"
+	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"io"
 )
@@ -82,7 +83,7 @@ func (codec *ProtocolCodec) Send(msg interface{}) error {
 		return err
 	}
 
-	count, err := codec.w.Write(data)
+	_, err = codec.w.Write(data)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"id":     fmt.Sprintf("0x%x", message.Header.MsgID),
@@ -91,10 +92,6 @@ func (codec *ProtocolCodec) Send(msg interface{}) error {
 		return err
 	}
 
-	log.WithFields(log.Fields{
-		"id":    fmt.Sprintf("0x%x", message.Header.MsgID),
-		"bytes": count,
-	}).Debug("[JT/T 808] write message success")
 	return nil
 }
 
@@ -172,7 +169,7 @@ func (codec *ProtocolCodec) readFromBuffer() (jt808.Message, bool, error) {
 	if err := message.Decode(data[:end+1], codec.privateKey); err != nil {
 		codec.bufferReceiving.Next(end + 1)
 		log.WithFields(log.Fields{
-			"data":   fmt.Sprintf("0x%x", hex.EncodeToString(data[:end+1])),
+			"data":   fmt.Sprintf("%x", hex.EncodeToString(data[:end+1])),
 			"reason": err,
 		}).Error("[JT/T 808] failed to receive message")
 		return jt808.Message{}, false, err
@@ -180,12 +177,11 @@ func (codec *ProtocolCodec) readFromBuffer() (jt808.Message, bool, error) {
 	codec.bufferReceiving.Next(end + 1)
 
 	if message.Header.MsgID != jt808.MsgT808_0x0118 {
-		log.WithFields(log.Fields{
-			"id": fmt.Sprintf("0x%x", message.Header.MsgID),
-		}).Debug("[JT/T 808] new message received")
-		log.WithFields(log.Fields{
-			"data": fmt.Sprintf("0x%x", common.GetHex(data[:end+1])),
-		}).Debug("[JT/T 808] message hex string")
+		storage.RawLogChannel <- storage.LogRow{
+			Imei:      message.Header.Imei,
+			Direction: "R",
+			Message:   fmt.Sprintf("%x", common.GetHex(data[:end+1])),
+		}
 	}
 
 	return message, true, nil
