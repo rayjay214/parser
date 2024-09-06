@@ -73,3 +73,19 @@ func UpdateCmdResponse(imei uint64, timeid uint64, response string) error {
 
 	return nil
 }
+
+func InsertDeviceLog(log DeviceLog) error {
+	query := "insert into t_device_log(imei, time, raw, type) values (?, ?, ?, ?)"
+	session, err := GetSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.Query(query, log.Imei, log.Time, log.Raw, log.Type).Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -180,6 +180,10 @@ func BatchParseHandler(writer http.ResponseWriter, request *http.Request) {
 			message := new(ota.Message)
 			message.Decode(data)
 			out, _ = json.Marshal(message)
+		case 0x86:
+			message := new(ipc.Message)
+			message.Decode(data)
+			out, _ = json.MarshalIndent(message, "", "   ")
 		case '*':
 			message := new(tq.Message)
 			message.Decode(data)

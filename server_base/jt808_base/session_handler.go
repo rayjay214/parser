@@ -74,23 +74,25 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 		//有时间服务器连接断了，删除session了，但是设备不知道，没有重连，没有上报0102
 		if message.Header.MsgID == jt808.MsgT808_0x0002 ||
 			message.Header.MsgID == jt808.MsgT808_0x0200 { //兼容设备的bug,有时候重连的第一条消息是0200,又一直声控不上报心跳
+			handler.server.mutex.Lock()
 			_, ok := handler.server.sessions[message.Header.Imei]
 			if !ok {
 				log.Warnf("%v session lost, new one", message.Header.Imei)
 				deviceInfo, _ := storage.GetDevice(message.Header.Imei)
 				session = newSession(handler.server, sess)
-				handler.server.mutex.Lock()
+
 				delete(handler.server.sessions, message.Header.Imei)
 				handler.server.sessions[message.Header.Imei] = session
 				session.imei = message.Header.Imei
 				session.UserData = make(map[string]interface{}, 8)
 				session.Protocol, _ = strconv.Atoi(deviceInfo["protocol"])
-				handler.server.mutex.Unlock()
+
 				handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
 				sess.AddCloseCallback(nil, nil, func() {
 					handler.server.handleClose(session)
 				})
 			}
+			handler.server.mutex.Unlock()
 		}
 
 		/*

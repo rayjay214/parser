@@ -12,6 +12,7 @@ import (
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"time"
 )
 
 type Protocol struct {
@@ -177,10 +178,18 @@ func (codec *ProtocolCodec) readFromBuffer() (jt808.Message, bool, error) {
 	codec.bufferReceiving.Next(end + 1)
 
 	if message.Header.MsgID != jt808.MsgT808_0x0118 {
-		storage.RawLogChannel <- storage.LogRow{
-			Imei:      message.Header.Imei,
-			Direction: "R",
-			Message:   fmt.Sprintf("%x", common.GetHex(data[:end+1])),
+		deviceLog := storage.DeviceLog{
+			Imei: message.Header.Imei,
+			Time: time.Now().Unix(),
+			Raw:  fmt.Sprintf("%x", common.GetHex(data[:end+1])),
+			Type: "R",
+		}
+		select {
+		case storage.RawLogChannel <- deviceLog:
+			// Successfully sent the item to the channel
+		default:
+			// Handle the case where the channel is full
+			log.Warnf("Channel is full, dropping log item:%v", deviceLog)
 		}
 	}
 

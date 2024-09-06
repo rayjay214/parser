@@ -61,7 +61,7 @@ func handle0808(session *jt808_base.Session, message *jt808.Message) {
 // 处理上报位置
 func handle0200(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0200)
-	//log.Infof("handle 0200 %v", entity)
+	log.Infof("%v handle 0200", session.ID())
 	handleLocation(message.Header.Imei, entity, session.Protocol)
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
@@ -69,7 +69,7 @@ func handle0200(session *jt808_base.Session, message *jt808.Message) {
 
 func handle0704(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0704)
-	log.Infof("handle 0704 %v", entity)
+	log.Infof("%v handle 0704", session.ID())
 
 	for _, item := range entity.Items {
 		handleLocation(message.Header.Imei, &item, session.Protocol)

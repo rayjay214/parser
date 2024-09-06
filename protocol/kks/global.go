@@ -44,6 +44,8 @@ const (
 	Msg_0xa0 MsgID = 0xa0
 	// 4G报警包
 	Msg_0xa3 MsgID = 0xa3
+	// 4GLBS多基站包
+	Msg_0xa1 MsgID = 0xa1
 )
 
 // 消息实体映射
@@ -101,5 +103,8 @@ var entityMapper = map[uint8]func() Entity{
 	},
 	uint8(Msg_0xa3): func() Entity {
 		return new(Kks_0xa3)
+	},
+	uint8(Msg_0xa1): func() Entity {
+		return new(Kks_0xa1)
 	},
 }

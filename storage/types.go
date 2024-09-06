@@ -65,3 +65,10 @@ type Region struct {
 	FenceState  string
 	FenceName   string
 }
+
+type DeviceLog struct {
+	Imei uint64
+	Time int64
+	Raw  string
+	Type string
+}
