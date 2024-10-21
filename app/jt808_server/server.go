@@ -59,11 +59,11 @@ func main() {
 	server.AddHandler(jt808.MsgT808_0x1006, handle1006)
 	server.AddHandler(jt808.MsgT808_0x0201, handle0201)
 
-	storage.InitCass("172.28.32.224")
-	storage.InitMinio("172.28.32.224:9000")
-	storage.InitRedis("172.28.32.224:6480")
-	storage.InitMysql("172.28.32.224:8000")
+	storage.InitCass(storage.Conf.Cassandra.Host)
+	storage.InitMinio(storage.Conf.Minio.Host)
+	storage.InitRedis(storage.Conf.Redis.Host)
+	storage.InitMysql(storage.Conf.Mysql.Host)
 
 	go service.StartRpc(server)
-	server.Run("tcp", 12345)
+	server.Run("tcp", storage.Conf.Jt808Server.Port)
 }

@@ -85,11 +85,13 @@ func (session *Session) Send(entity jt808.Entity) (uint16, error) {
 
 	data, _ := message.Encode()
 	//log.Printf("send cmd %x", common.GetHex(data))
-	storage.RawLogChannel <- storage.DeviceLog{
-		Imei: message.Header.Imei,
-		Time: time.Now().Unix(),
-		Raw:  fmt.Sprintf("%x", common.GetHex(data)),
-		Type: "S",
+	if storage.Conf.RawLog.Open == 1 {
+		storage.RawLogChannel <- storage.DeviceLog{
+			Imei: message.Header.Imei,
+			Time: time.Now().Unix(),
+			Raw:  fmt.Sprintf("%x", common.GetHex(data)),
+			Type: "S",
+		}
 	}
 
 	err := session.session.Send(message)

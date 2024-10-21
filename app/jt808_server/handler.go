@@ -111,7 +111,8 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			info["acc_power"] = v.Status
 		case extra.Extra_0x05{}.ID():
 			if protocol == 1 {
-				if ext.(*extra.Extra_0x05).Value() == 1 {
+				v := ext.(*extra.Extra_0x05).Value().(byte)
+				if v == 1 {
 					info["state"] = "2"
 					locTypeBase = 3
 				} else {

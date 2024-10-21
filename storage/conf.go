@@ -34,6 +34,7 @@ type Config struct {
 
 	RawLog struct {
 		Path string `ini:"path"`
+		Open int    `ini:"open"`
 	} `ini:"raw_log"`
 }
 
