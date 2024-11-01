@@ -185,6 +185,76 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 		return nil
 	}
 
+	fParse54 := func(wifiContent []byte, info *WifiInfo) error {
+		reader := common.NewReader(wifiContent)
+		var err error
+
+		wifiNum, err := reader.ReadByte()
+
+		for i := 0; i < int(wifiNum); i++ {
+			var mac Mac
+			var byteMac []byte
+			byteMac, err = reader.Read(6)
+			if err != nil {
+				return err
+			}
+			strMac := hex.EncodeToString(byteMac)
+			var parts []string
+			for i := 0; i < len(strMac); i += 2 {
+				end := i + 2
+				if end > len(strMac) {
+					end = len(strMac)
+				}
+				parts = append(parts, strMac[i:end])
+			}
+			mac.MacAddr = strings.Join(parts, ":")
+
+			mac.Rssi, err = reader.ReadByte()
+			if err != nil {
+				return err
+			}
+			info.MacList = append(info.MacList, mac)
+		}
+		return nil
+	}
+
+	fParse5d := func(lbsContent []byte, info *LbsInfo) error {
+		reader := common.NewReader(lbsContent)
+
+		var err error
+
+		btsNum, err := reader.ReadByte()
+
+		for i := 0; i < int(btsNum); i++ {
+			info.Mcc, err = reader.ReadUint16()
+			if err != nil {
+				return err
+			}
+			info.Mnc, err = reader.ReadByte()
+			if err != nil {
+				return err
+			}
+
+			var bts Bts
+			bts.Lac, err = reader.ReadUint16()
+			if err != nil {
+				return err
+			}
+			cellid, err := reader.ReadUint32()
+			if err != nil {
+				return err
+			}
+			bts.Cellid = cellid
+			rssi, err := reader.ReadByte()
+			if err != nil {
+				return err
+			}
+			bts.Rssi = rssi*2 - 113
+			info.BtsList = append(info.BtsList, bts)
+		}
+		return nil
+	}
+
 	for _, ext := range entity.Extras {
 		switch ext.ID() {
 		case extra.Extra_0xeb{}.ID():
@@ -199,6 +269,12 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 		case extra.Extra_0xec{}.ID():
 			wifiContent := ext.(*extra.Extra_0xec).Data()
 			fParseEC(wifiContent, &wifiInfo)
+		case extra.Extra_0x54{}.ID():
+			wifiContent := ext.(*extra.Extra_0x54).Data()
+			fParse54(wifiContent, &wifiInfo)
+		case extra.Extra_0x5d{}.ID():
+			lbsContent := ext.(*extra.Extra_0x5d).Data()
+			fParse5d(lbsContent, &lbsInfo)
 		}
 	}
 

@@ -324,6 +324,32 @@ func handle1300(session *jt808_base.Session, message *jt808.Message) {
 	}
 }
 
+func handle6006(session *jt808_base.Session, message *jt808.Message) {
+	entity := message.Body.(*jt808.T808_0x6006)
+	log.Infof("handle 6006 %v", entity)
+	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo)
+	if err != nil {
+		return
+	}
+	var timeid uint64
+	if v, ok := result["timeid"]; ok {
+		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
+
+	//同步定位模式
+	if mode, ok := result["mode"]; ok {
+		err = storage.UpdateMode(session.ID(), mode)
+		if err != nil {
+			log.Warnf("%v update mode failed %v", session.ID(), err)
+		}
+	}
+
+	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
+	if err != nil {
+		log.Infof("err %v", err)
+	}
+}
+
 func handle0116(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0116)
 	session.UserData["short_record"] = ShortRecord{
@@ -579,6 +605,10 @@ func handle0119(session *jt808_base.Session, message *jt808.Message) {
 func handle0001(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0001)
 	log.Infof("%v handle 0001 %v", session.ID(), entity)
+
+	if session.Protocol == 5 && entity.ReplyMsgID == uint16(jt808.MsgT808_0x6006) {
+		return
+	}
 
 	result, err := storage.GetCmdLog(session.ID(), entity.ReplyMsgSerialNo)
 	if err != nil {

@@ -58,6 +58,7 @@ func main() {
 	server.AddHandler(jt808.MsgT808_0x0112, handle0112)
 	server.AddHandler(jt808.MsgT808_0x1006, handle1006)
 	server.AddHandler(jt808.MsgT808_0x0201, handle0201)
+	server.AddHandler(jt808.MsgT808_0x6006, handle6006)
 
 	storage.InitCass(storage.Conf.Cassandra.Host)
 	storage.InitMinio(storage.Conf.Minio.Host)
