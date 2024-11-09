@@ -43,10 +43,37 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 }
 
 func handle0002(session *jt808_base.Session, message *jt808.Message) {
+	entity := message.Body.(*jt808.T808_0x0002)
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
 		//"state":     "3",
 	}
+
+	for _, ext := range entity.Extras {
+		switch ext.ID() {
+		case extra.Extra_0x04{}.ID():
+			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0xe4_Value)
+			info["power"] = v.Power
+			info["acc_power"] = v.Status
+		case extra.Extra_0x30{}.ID():
+			info["signal"] = ext.(*extra.Extra_0x30).Value()
+		case extra.Extra_0x31{}.ID():
+			info["satellite"] = ext.(*extra.Extra_0x31).Value()
+		case extra.Extra_0xf0{}.ID():
+			log.Infof("voltage is %v", ext.(*extra.Extra_0xf0).Value())
+			info["voltage"] = fmt.Sprintf("%.2fV", float32(ext.(*extra.Extra_0xf0).Value().(uint16)/100))
+		case extra.Extra_0xf5{}.ID():
+			info["gprs_type"] = ext.(*extra.Extra_0xf5).Value()
+		case extra.Extra_0xe5{}.ID():
+			v := ext.(*extra.Extra_0xe5).Value().(byte)
+			if v == 1 {
+				info["state"] = "2"
+			} else {
+				info["state"] = "3"
+			}
+		}
+	}
+
 	storage.SetRunInfo(message.Header.Imei, info)
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)

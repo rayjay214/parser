@@ -1,17 +1,64 @@
 package jt808
 
+import (
+	"fmt"
+	"github.com/rayjay214/parser/protocol/common"
+	"github.com/rayjay214/parser/protocol/jt808/errors"
+	"github.com/rayjay214/parser/protocol/jt808/extra"
+	log "github.com/sirupsen/logrus"
+)
+
 // 终端心跳
 type T808_0x0002 struct {
+	Extras []extra.Entity
 }
 
 func (entity *T808_0x0002) MsgID() MsgID {
-    return MsgT808_0x0002
+	return MsgT808_0x0002
 }
 
 func (entity *T808_0x0002) Encode() ([]byte, error) {
-    return nil, nil
+	return nil, nil
 }
 
 func (entity *T808_0x0002) Decode(data []byte) (int, error) {
-    return 0, nil
+	//解析扩展协议
+	reader := common.NewReader(data)
+	if len(data) > 2 {
+		extras := make([]extra.Entity, 0)
+		buffer := data[len(data)-reader.Len():]
+		for {
+			if len(buffer) < 2 {
+				break
+			}
+			id, length := buffer[0], int(buffer[1])
+			buffer = buffer[2:]
+			if len(buffer) < length {
+				return 0, errors.ErrInvalidExtraLength
+			}
+
+			extraEntity, count, err := extra.Decode(id, buffer[:length])
+			if err != nil {
+				if err == errors.ErrTypeNotRegistered {
+					buffer = buffer[length:]
+					log.WithFields(log.Fields{
+						"id": fmt.Sprintf("0x%x", id),
+					}).Warn("[JT/T808] unknown T808_0x0200 extra type")
+					continue
+				}
+				return 0, err
+			}
+			if count != length {
+				return 0, errors.ErrInvalidExtraLength
+			}
+			extras = append(extras, extraEntity)
+			buffer = buffer[length:]
+		}
+		if len(extras) > 0 {
+			entity.Extras = extras
+		}
+		return len(data) - reader.Len(), nil
+	}
+
+	return 0, nil
 }
