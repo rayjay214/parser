@@ -34,7 +34,7 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 
 	info := map[string]interface{}{
 		"status":    "2", //maybe useless
-		"state":     "3",
+		"state":     "2",
 		"comm_time": time.Now(),
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
@@ -45,7 +45,7 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 func handle0002(session *jt808_base.Session, message *jt808.Message) {
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
-		"state":     "3",
+		//"state":     "3",
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
 
@@ -114,9 +114,9 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 				v := ext.(*extra.Extra_0x05).Value().(byte)
 				if v == 1 {
 					info["state"] = "2"
-					locTypeBase = 3
 				} else {
 					info["state"] = "3"
+					locTypeBase = 3
 				}
 			}
 		case extra.Extra_0x30{}.ID():
@@ -148,6 +148,14 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 			info["voltage"] = fmt.Sprintf("%.2fV", float32(ext.(*extra.Extra_0xf0).Value().(uint16)/100))
 		case extra.Extra_0xf5{}.ID():
 			info["gprs_type"] = ext.(*extra.Extra_0xf5).Value()
+		case extra.Extra_0xe5{}.ID():
+			v := ext.(*extra.Extra_0xe5).Value().(byte)
+			if v == 1 {
+				info["state"] = "2"
+			} else {
+				info["state"] = "3"
+				locTypeBase = 3
+			}
 		}
 	}
 

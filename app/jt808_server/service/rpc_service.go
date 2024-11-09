@@ -246,7 +246,7 @@ func (s *deviceService) HandelRestart(ctx context.Context, req *proto.HandelRest
 
 func StartRpc(tcpServer *jt808_base.Server) {
 	gJt808Server = tcpServer
-	lis, err := net.Listen("tcp", ":40051")
+	lis, err := net.Listen("tcp", storage.Conf.Grpc.Host)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

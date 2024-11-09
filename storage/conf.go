@@ -36,6 +36,10 @@ type Config struct {
 		Path string `ini:"path"`
 		Open int    `ini:"open"`
 	} `ini:"raw_log"`
+
+	Grpc struct {
+		Host string `ini:"host"`
+	} `ini:"grpc"`
 }
 
 var Conf *Config
