@@ -379,6 +379,15 @@ func handle6006(session *jt808_base.Session, message *jt808.Message) {
 		}
 	}
 
+	//同步震动报警阈值
+	if value, ok := result["shake_value"]; ok {
+		shakeValue, _ := strconv.Atoi(value)
+		err = storage.UpdateShakeValue(session.ID(), shakeValue)
+		if err != nil {
+			log.Warnf("%v update mode failed %v", session.ID(), err)
+		}
+	}
+
 	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 	if err != nil {
 		log.Infof("err %v", err)

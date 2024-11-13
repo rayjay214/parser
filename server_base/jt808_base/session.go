@@ -251,6 +251,21 @@ func (session *Session) SetShakeValue(value int32) (uint16, error) {
 				new(jt808.Param).SetByte(0xf112, byte(value)),
 			},
 		}
+	} else if session.Protocol == 5 {
+		var text string
+		if value == 48 {
+			text = "SENLEVEL,9#"
+		} else if value == 28 {
+			text = "SENLEVEL,6#"
+		} else if value == 18 {
+			text = "SENLEVEL,3#"
+		}
+
+		en := jt808.T808_0x8300{
+			Flag: 0,
+			Text: text,
+		}
+		return session.Send(&en)
 	}
 
 	return session.Send(&entity)
