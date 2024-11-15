@@ -129,7 +129,7 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		case extra.Extra_0x01{}.ID():
 			info["distance"] = ext.(*extra.Extra_0x01).Value()
 		case extra.Extra_0x04{}.ID():
-			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0xe4_Value)
+			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0x04_Value)
 			info["power"] = v.Power
 			info["acc_power"] = v.Status
 		case extra.Extra_0xe4{}.ID():
