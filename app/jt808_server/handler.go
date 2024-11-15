@@ -52,7 +52,7 @@ func handle0002(session *jt808_base.Session, message *jt808.Message) {
 	for _, ext := range entity.Extras {
 		switch ext.ID() {
 		case extra.Extra_0x04{}.ID():
-			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0xe4_Value)
+			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0x04_Value)
 			info["power"] = v.Power
 			info["acc_power"] = v.Status
 		case extra.Extra_0x30{}.ID():

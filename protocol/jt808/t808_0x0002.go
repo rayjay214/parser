@@ -1,6 +1,7 @@
 package jt808
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/protocol/jt808/errors"
@@ -61,4 +62,32 @@ func (entity *T808_0x0002) Decode(data []byte) (int, error) {
 	}
 
 	return 0, nil
+}
+
+func (entity T808_0x0002) MarshalJSON() ([]byte, error) {
+	type Alias T808_0x0002
+
+	type New0002 struct {
+		Alias
+		Extras map[string]interface{}
+	}
+
+	s := New0002{
+		Alias:  Alias(entity),
+		Extras: map[string]interface{}{},
+	}
+
+	for _, v := range entity.Extras {
+		var strId string
+		var val interface{}
+		strId = "0x" + fmt.Sprintf("%02x", v.ID())
+		switch vPrint := v.ToPrint().(type) {
+		case map[string]interface{}:
+			val = vPrint
+		default:
+			fmt.Println("%T", vPrint)
+		}
+		s.Extras[strId] = val
+	}
+	return json.Marshal(s)
 }

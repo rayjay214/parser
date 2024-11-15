@@ -9,7 +9,7 @@ import (
 // 基站信息
 type Extra_0x04 struct {
 	serialized []byte
-	value      Extra_0xe4_Value
+	value      Extra_0x04_Value
 }
 
 type Extra_0x04_Value struct {
