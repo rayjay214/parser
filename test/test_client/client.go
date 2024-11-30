@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var g_seqno uint32 = 0
+var g_seqno uint32 = 2
 
 func nextID() uint16 {
 	var id uint32
