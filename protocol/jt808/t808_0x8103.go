@@ -57,6 +57,13 @@ func (entity *T808_0x8103) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	_ = pkgParamNums
+
+	//2013版协议
+	if paramNums != pkgParamNums {
+		reader = common.NewReader(data)
+		reader.ReadByte()
+	}
+
 	//end by rayjay
 
 	// 读取参数信息
