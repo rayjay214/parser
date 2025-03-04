@@ -31,7 +31,7 @@ func nextID() uint16 {
 
 func main() {
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:12346")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "114.215.190.173:8881")
 	if err != nil {
 		panic(err)
 	}
@@ -45,8 +45,8 @@ func main() {
 	defer conn.Close()
 
 	// 终端鉴权
-	var imei uint64 = 65306357743
-	var authkey = "65306357743"
+	var imei uint64 = 13320774980
+	var authkey = "13320774980"
 	message := jt808.Message{
 		Header: jt808.Header{
 			Imei:        imei,
@@ -57,7 +57,7 @@ func main() {
 		},
 	}
 	data, err := message.Encode()
-
+	fmt.Printf("%x\n", data)
 	if _, err = conn.Write(data); err != nil {
 		fmt.Printf("write failed , err : %v\n", err)
 		return

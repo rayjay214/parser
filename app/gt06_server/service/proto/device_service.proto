@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "parser/service/proto";
+
+message SendCmdRequest {
+  string protocol = 1;
+  uint64 imei = 2;  //设备号
+  string content = 3;  //指令内容
+  uint64 time_id = 4; //cmd的key
+}
+
+message SendCmdReply {
+  string message = 1;
+}
+
+message CommonReply {
+  string message = 1;
+}
+
+service DeviceService {
+  rpc SendCmd (SendCmdRequest) returns (SendCmdReply);  //下发短信指令
+}
+

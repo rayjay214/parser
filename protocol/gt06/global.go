@@ -1,4 +1,4 @@
-package kks
+package gt06
 
 // 消息ID枚举
 type MsgID uint8
@@ -54,12 +54,6 @@ var entityMapper = map[uint8]func() Entity{
 	uint8(Msg_0x13): func() Entity {
 		return new(Kks_0x13)
 	},
-	uint8(Msg_0x22): func() Entity {
-		return new(Kks_0x22)
-	},
-	uint8(Msg_0x26): func() Entity {
-		return new(Kks_0x26)
-	},
 	uint8(Msg_0x94): func() Entity {
 		return new(Kks_0x94)
 	},
@@ -68,18 +62,6 @@ var entityMapper = map[uint8]func() Entity{
 	},
 	uint8(Msg_0x21): func() Entity {
 		return new(Kks_0x21)
-	},
-	uint8(Msg_0x17): func() Entity {
-		return new(Kks_0x17)
-	},
-	uint8(Msg_0x17_AddrResp): func() Entity {
-		return new(Kks_0x17_AddrResp)
-	},
-	uint8(Msg_0x17_AlarmResp): func() Entity {
-		return new(Kks_0x17_AlarmResp)
-	},
-	uint8(Msg_0x2a): func() Entity {
-		return new(Kks_0x2a)
 	},
 	uint8(Msg_0x12): func() Entity {
 		return new(Kks_0x12)
@@ -90,17 +72,8 @@ var entityMapper = map[uint8]func() Entity{
 	uint8(Msg_0x28): func() Entity {
 		return new(Kks_0x28)
 	},
-	uint8(Msg_0x18): func() Entity {
-		return new(Kks_0x18)
-	},
 	uint8(Msg_0x15): func() Entity {
 		return new(Kks_0x15)
-	},
-	uint8(Msg_0xa0): func() Entity {
-		return new(Kks_0xa0)
-	},
-	uint8(Msg_0xa3): func() Entity {
-		return new(Kks_0xa3)
 	},
 	uint8(Msg_0xa1): func() Entity {
 		return new(Kks_0xa1)
