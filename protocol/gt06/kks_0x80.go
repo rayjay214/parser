@@ -12,8 +12,7 @@ type Kks_0x80 struct {
 	ContentLen uint8
 	SysFlag    uint32
 	Content    string
-	Reserved   uint8
-	Lang       uint8
+	Lang       uint16
 	SeqNo      uint16
 }
 
@@ -28,7 +27,17 @@ func (entity *Kks_0x80) MsgID() MsgID {
 func (entity *Kks_0x80) Encode() ([]byte, error) {
 	writer := common.NewWriter()
 
-	//todo
+	writer.WriteByte(entity.Proto)
+
+	writer.WriteByte(4 + byte(len(entity.Content)))
+
+	writer.WriteUint32(0)
+
+	writer.WriteString(entity.Content)
+
+	writer.WriteUint16(0)
+
+	writer.WriteUint16(entity.SeqNo)
 
 	return writer.Bytes(), nil
 }
@@ -57,12 +66,7 @@ func (entity *Kks_0x80) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 
-	entity.Reserved, err = reader.ReadByte()
-	if err != nil {
-		return 0, err
-	}
-
-	entity.Lang, err = reader.ReadByte()
+	entity.Lang, err = reader.ReadUint16()
 	if err != nil {
 		return 0, err
 	}

@@ -1,11 +1,11 @@
 package gt06_base
 
 import (
-	"fmt"
 	"github.com/rayjay214/link"
 	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/protocol/gt06"
 	"github.com/rayjay214/parser/protocol/jt808"
+	log "github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"
 )
@@ -60,7 +60,7 @@ func (session *Session) Send(entity gt06.Entity) (uint16, error) {
 	}
 
 	data, _ := message.Encode()
-	fmt.Printf("send cmd %x", common.GetHex(data))
+	log.Infof("rayjay07 send msg %x", common.GetHex(data))
 	err := session.session.Send(message)
 	if err != nil {
 		return 0, err
@@ -72,6 +72,7 @@ func (session *Session) SendCmd(content string) (uint16, error) {
 	entity := gt06.Kks_0x80{
 		Proto:   0x80,
 		Content: content,
+		SeqNo:   session.nextID(),
 	}
 	return session.Send(&entity)
 }

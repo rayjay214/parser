@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/rayjay214/link"
+	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/protocol/gt06"
 	"github.com/rayjay214/parser/protocol/jt808/errors"
 	log "github.com/sirupsen/logrus"
@@ -154,6 +155,8 @@ func (codec *ProtocolCodec) readFromBuffer() (gt06.Message, bool, error) {
 		return gt06.Message{}, false, err
 	}
 	codec.bufferReceiving.Next(msgLen)
+
+	log.Infof("rayjay07 recv msg %x", common.GetHex(data[:msgLen]))
 
 	return message, true, nil
 }

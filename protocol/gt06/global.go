@@ -38,11 +38,9 @@ const (
 	Msg_0x15 MsgID = 0x15
 	// 校时包
 	Msg_0x8a MsgID = 0x8a
-	// 4G定位包
-	Msg_0xa0 MsgID = 0xa0
-	// 4G报警包
-	Msg_0xa3 MsgID = 0xa3
-	// 4GLBS多基站包
+	// 基站包
+	Msg_0x20 MsgID = 0x20
+	// a1
 	Msg_0xa1 MsgID = 0xa1
 )
 
@@ -74,6 +72,9 @@ var entityMapper = map[uint8]func() Entity{
 	},
 	uint8(Msg_0x15): func() Entity {
 		return new(Kks_0x15)
+	},
+	uint8(Msg_0x20): func() Entity {
+		return new(Kks_0x20)
 	},
 	uint8(Msg_0xa1): func() Entity {
 		return new(Kks_0xa1)

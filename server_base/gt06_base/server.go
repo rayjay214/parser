@@ -152,12 +152,12 @@ func (server *Server) handleReadTimeout(key string) {
 // 分派消息
 func (server *Server) dispatchMessage(session *Session, message *gt06.Message) {
 	id := message.Body.MsgID()
-	fmt.Println(id)
 	handler, ok := server.messageHandlers.Load(id)
 	if !ok {
 		log.WithFields(log.Fields{
 			"id": fmt.Sprintf("0x%x", message.Body.MsgID),
 		}).Info("[gt06] dispatch message canceled, handler not found")
+		log.Infof("message is %v", message)
 		return
 	}
 

@@ -37,6 +37,9 @@ func main() {
 	server.AddHandler(gt06.Msg_0x12, handle12)
 	server.AddHandler(gt06.Msg_0xa1, handleA1)
 	server.AddHandler(gt06.Msg_0x94, handle94)
+	server.AddHandler(gt06.Msg_0x20, handle20)
+	server.AddHandler(gt06.Msg_0x13, handle13)
+	server.AddHandler(gt06.Msg_0x16, handle16)
 
 	storage.InitCass(storage.Conf.Cassandra.Host)
 	storage.InitMinio(storage.Conf.Minio.Host)

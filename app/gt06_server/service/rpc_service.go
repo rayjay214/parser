@@ -14,11 +14,11 @@ import (
 var gt06Server *gt06_base.Server
 
 type deviceService struct {
-	proto.UnimplementedDeviceServiceServer
+	proto.UnimplementedGt06ServiceServer
 }
 
-func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendCmdRequest) (*proto.SendCmdReply, error) {
-	var resp proto.SendCmdReply
+func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendGt06CmdRequest) (*proto.Gt06CommonReply, error) {
+	var resp proto.Gt06CommonReply
 	resp.Message = "ok"
 	session, ok := gt06Server.GetSession(req.Imei)
 
@@ -46,9 +46,9 @@ func StartRpc(tcpServer *gt06_base.Server) {
 	}
 
 	server := grpc.NewServer()
-	proto.RegisterDeviceServiceServer(server, &deviceService{})
+	proto.RegisterGt06ServiceServer(server, &deviceService{})
 
-	log.Println("gRPC server is running on :40051")
+	log.Println("gRPC server is running on :40052")
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
