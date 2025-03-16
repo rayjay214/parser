@@ -20,6 +20,12 @@ func handle01(session *gt06_base.Session, message *gt06.Message) {
 		storage.UpdateStartTime(session.ID())
 	}
 
+	info := map[string]interface{}{
+		"state":     "4",
+		"comm_time": time.Now(),
+	}
+	_ = storage.SetRunInfo(session.ID(), info)
+
 	session.CommonReply(entity.Proto)
 }
 
@@ -152,6 +158,13 @@ func handle13(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x13)
 	fmt.Printf("%v:handle 13 %v, %v\n", session.ID(), message, entity)
 
+	info := map[string]interface{}{
+		"state":     "4",
+		"comm_time": time.Now(),
+		"power":     entity.Voltage,
+	}
+	_ = storage.SetRunInfo(session.ID(), info)
+
 	session.CommonReply(entity.Proto)
 }
 
@@ -193,10 +206,19 @@ func handle16(session *gt06_base.Session, message *gt06.Message) {
 
 	handleLocation(session.ID(), loc, lbsResp, entity.Time)
 
+	info := map[string]interface{}{
+		"power": entity.Voltage,
+	}
+	_ = storage.SetRunInfo(session.ID(), info)
+
 	session.CommonReply(entity.Proto)
 }
 
 func handleLocation(imei uint64, loc storage.Location, lbsResp LbsResp, locTime time.Time) {
+	if loc.Lat == 0 || loc.Lng == 0 {
+		return
+	}
+
 	err := storage.InsertLocation(loc)
 	if err != nil {
 		log.Warnf("insert location err %v", err)
@@ -204,6 +226,7 @@ func handleLocation(imei uint64, loc storage.Location, lbsResp LbsResp, locTime 
 
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
+		"state":     "4",
 	}
 	info["lat"] = lbsResp.Lat
 	info["lng"] = lbsResp.Lng
@@ -211,4 +234,20 @@ func handleLocation(imei uint64, loc storage.Location, lbsResp LbsResp, locTime 
 	info["loc_time"] = locTime
 
 	storage.SetRunInfo(imei, info)
+}
+
+func handle15(session *gt06_base.Session, message *gt06.Message) {
+	entity := message.Body.(*gt06.Kks_0x15)
+	fmt.Printf("%v:handle 15 %v, %v\n", session.ID(), message, entity)
+
+	result, err := storage.GetCmdLog(session.ID(), uint16(entity.SysFlag))
+	if err != nil {
+		return
+	}
+	var timeid uint64
+	if v, ok := result["timeid"]; ok {
+		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
+
+	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 }

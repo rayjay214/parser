@@ -69,10 +69,12 @@ func (session *Session) Send(entity gt06.Entity) (uint16, error) {
 }
 
 func (session *Session) SendCmd(content string) (uint16, error) {
+	seqNo := session.nextID()
 	entity := gt06.Kks_0x80{
 		Proto:   0x80,
 		Content: content,
-		SeqNo:   session.nextID(),
+		SeqNo:   seqNo,
+		SysFlag: uint32(seqNo),
 	}
 	return session.Send(&entity)
 }

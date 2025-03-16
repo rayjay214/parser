@@ -99,7 +99,7 @@ func (server *Server) AddHandler(msgID gt06.MsgID, handler MessageHandler) {
 // 处理关闭
 func (server *Server) handleClose(session *Session) {
 	server.mutex.Lock()
-	delete(server.sessions, session.ID())
+	//delete(server.sessions, session.ID()) 不能删，防止前一个把当前的给误删了
 	server.mutex.Unlock()
 
 	server.timer.Remove(strconv.FormatUint(session.ID(), 10))
