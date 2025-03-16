@@ -31,11 +31,11 @@ func (entity *Kks_0x80) Encode() ([]byte, error) {
 
 	writer.WriteByte(4 + byte(len(entity.Content)))
 
-	writer.WriteUint32(0)
+	writer.WriteUint32(entity.SysFlag)
 
 	writer.WriteString(entity.Content)
 
-	writer.WriteUint16(0)
+	writer.WriteUint16(2)
 
 	writer.WriteUint16(entity.SeqNo)
 
