@@ -52,6 +52,11 @@ func UpdateMode(imei uint64, mode string) error {
 	return err
 }
 
+func UpdateStatus(imei uint64, status string) error {
+	_, err := MysqlDB.Exec("update device set status=? where imei=?", status, imei)
+	return err
+}
+
 func UpdateStartTime(imei uint64) error {
 	startTime := time.Now().Format("2006-01-02 15:04:05")
 	_, err := MysqlDB.Exec("update device set start_time=? where imei=?", startTime, imei)

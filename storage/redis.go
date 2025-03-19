@@ -36,6 +36,7 @@ func SetRunInfo(imei uint64, info map[string]interface{}) error {
 		}
 		if info["state"] != result["state"] {
 			info["state_begin_time"] = time.Now()
+			UpdateStatus(imei, info["state"].(string))
 		}
 	}
 
