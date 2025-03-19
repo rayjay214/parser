@@ -51,12 +51,21 @@ func (session *Session) GetServer() *Server {
 
 // 发送消息
 func (session *Session) Send(entity gt06.Entity) (uint16, error) {
-
-	message := gt06.Message{
-		Body: entity,
-		Header: gt06.Header{
-			Prefix: 0x7878,
-		},
+	var message gt06.Message
+	if entity.MsgID() == 0x94 {
+		message = gt06.Message{
+			Body: entity,
+			Header: gt06.Header{
+				Prefix: 0x7979,
+			},
+		}
+	} else {
+		message = gt06.Message{
+			Body: entity,
+			Header: gt06.Header{
+				Prefix: 0x7878,
+			},
+		}
 	}
 
 	data, _ := message.Encode()

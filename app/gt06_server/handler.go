@@ -108,6 +108,8 @@ func handle94(session *gt06_base.Session, message *gt06.Message) {
 			}
 		}
 	}
+
+	session.CommonReply(entity.Proto)
 }
 
 func handle20(session *gt06_base.Session, message *gt06.Message) {
@@ -152,6 +154,8 @@ func handle20(session *gt06_base.Session, message *gt06.Message) {
 	}
 
 	handleLocation(session.ID(), loc, lbsResp, entity.Time)
+
+	session.CommonReply(entity.Proto)
 }
 
 func handle13(session *gt06_base.Session, message *gt06.Message) {

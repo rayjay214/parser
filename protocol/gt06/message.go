@@ -18,7 +18,7 @@ func (message *Message) Encode() ([]byte, error) {
 		return nil, err
 	}
 
-	if message.Body.MsgID() == 0x97 {
+	if message.Header.Prefix == 0x7979 {
 		message.Header.MsgLen = uint16(len(body) + 2)
 	} else {
 		message.Header.MsgLen = byte(len(body) + 2)
