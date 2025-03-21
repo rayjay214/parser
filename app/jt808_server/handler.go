@@ -503,24 +503,24 @@ func handle0003(session *jt808_base.Session, message *jt808.Message) {
 func handle0105(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0105)
 	session.Reply8125()
-	log.Infof("handle 0105 %v", entity)
+	log.Infof("%v handle 0105 %v", message.Header.Imei, entity)
 }
 
 func handle0108(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0108)
-	log.Infof("handle 0108 %v", entity)
+	log.Infof("%v handle 0108 %v", message.Header.Imei, entity)
 	session.Reply8108()
 }
 
 func handle0210(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0210)
-	log.Infof("handle 0210 %v", entity)
+	log.Infof("%v handle 0210 %v", message.Header.Imei, entity)
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
 func handle0115(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0115)
-	log.Infof("handle 0115 %v", entity)
+	log.Infof("%v, handle 0115 %v", message.Header.Imei, entity)
 	delete(session.UserData, "short_record")
 	storage.DelRunInfoFields(session.ID(), []string{"record_state"})
 	//session.Reply8115(entity.SessionId)
@@ -528,7 +528,7 @@ func handle0115(session *jt808_base.Session, message *jt808.Message) {
 
 func handle0120(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0120)
-	log.Infof("handle 0120 %v", entity)
+	log.Infof("%v handle 0120 %v", message.Header.Imei, entity)
 	session.UserData["vor_record"] = &VorRecord{
 		Imei:        session.ID(),
 		Writer:      common.NewWriter(),
@@ -537,10 +537,12 @@ func handle0120(session *jt808_base.Session, message *jt808.Message) {
 		FirstPacket: true,
 		PkgCnt:      0,
 	}
+
 	info := map[string]interface{}{
 		"record_state": 3,
 	}
 	storage.SetRunInfo(message.Header.Imei, info)
+
 	storage.SetVorSwitch(session.ID(), 1)
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
@@ -575,7 +577,7 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 			vorRecord.PkgCnt < 47 {
 			vorRecord.EndTime = currBeginTime.Add(time.Second * 10)
 			buffer, err := ioutil.ReadAll(entity.Packet)
-			log.Infof("rayjay buffer len %v, err is %v", len(buffer), err)
+			log.Infof("%v rayjay buffer len %v, err is %v", message.Header.Imei, len(buffer), err)
 			vorRecord.Writer.Write(buffer)
 			vorRecord.PkgCnt += 1
 		} else { //上报当前缓存录音
@@ -633,14 +635,14 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 		vorRecord.Writer.Write(buffer)
 		vorRecord.PkgCnt += 1
 	}
-	log.Infof("vor %v", *vorRecord)
+	log.Infof("%v vor %v", message.Header.Imei, *vorRecord)
 
 	session.ReplyVorRecord(entity)
 }
 
 func handle0119(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0119)
-	log.Infof("handle 0119 %v", entity)
+	log.Infof("%v handle 0119 %v", message.Header.Imei, entity)
 	storage.DelRunInfoFields(session.ID(), []string{"record_state"})
 	storage.SetVorSwitch(session.ID(), 0)
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
