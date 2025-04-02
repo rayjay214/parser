@@ -17,11 +17,13 @@ type Config struct {
 	} `ini:"jt808_server"`
 
 	Cassandra struct {
-		Host string `ini:"host"`
+		Host   string `ini:"host"`
+		Dbname string `ini:"dbname"`
 	} `ini:"cassandra"`
 
 	Mysql struct {
-		Host string `ini:"host"`
+		Host   string `ini:"host"`
+		Dbname string `ini:"dbname"`
 	} `ini:"mysql"`
 
 	Redis struct {

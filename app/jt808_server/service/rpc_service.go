@@ -51,7 +51,7 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShor
 	}
 
 	switch req.Protocol {
-	case "1", "2":
+	case "1", "2", "5":
 		_, err := session.OpenShortRecord(req.Seconds)
 		if err != nil {
 			return &resp, err
@@ -77,7 +77,7 @@ func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecor
 	}
 
 	switch req.Protocol {
-	case "1", "2":
+	case "1", "2", "5":
 		seqNo, err := session.VorRecordSwitch(req.Switch)
 		if err != nil {
 			return &resp, err

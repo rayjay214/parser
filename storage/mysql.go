@@ -15,7 +15,7 @@ var (
 
 func InitMysql(host string) error {
 	var err error
-	MysqlDB, err = sql.Open("mysql", fmt.Sprintf("admin:shht@tcp(%v)/xx?charset=utf8&parseTime=True&loc=Local", host))
+	MysqlDB, err = sql.Open("mysql", fmt.Sprintf("admin:shht@tcp(%v)/%v?charset=utf8&parseTime=True&loc=Local", host, Conf.Mysql.Dbname))
 
 	if err != nil {
 		return err

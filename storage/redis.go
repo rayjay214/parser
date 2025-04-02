@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -28,15 +29,20 @@ func GetDevice(imei uint64) (map[string]string, error) {
 
 func SetRunInfo(imei uint64, info map[string]interface{}) error {
 	key := fmt.Sprintf("runinfo_%v", imei)
-	if info["state"] != "" {
+	state, ok := info["state"]
+	if ok && state != nil {
 		//状态变化了要记录状态开始时间
 		result, err := rdb.HGetAll(context.Background(), key).Result()
 		if err != nil {
 			return err
 		}
-		if info["state"] != result["state"] {
-			info["state_begin_time"] = time.Now()
-			UpdateStatus(imei, info["state"].(string))
+
+		// 安全地进行类型断言
+		if stateStr, ok := state.(string); ok {
+			if stateStr != result["state"] {
+				info["state_begin_time"] = time.Now()
+				UpdateStatus(imei, stateStr)
+			}
 		}
 	}
 
