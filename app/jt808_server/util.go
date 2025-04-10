@@ -345,11 +345,13 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 }
 
 func calDuration(fileSize int) int {
-	quotient := fileSize / 702
-	remainder := fileSize % 702
+	kBytesPerSeconds := 702
+	//kBytesPerSeconds := 737 //AMR-NB 5.90 kbps
+	quotient := fileSize / kBytesPerSeconds
+	remainder := fileSize % kBytesPerSeconds
 
 	// 如果余数大于等于除数的一半，向上取整
-	if remainder >= 702/2 {
+	if remainder >= kBytesPerSeconds/2 {
 		quotient++
 	}
 	return quotient
