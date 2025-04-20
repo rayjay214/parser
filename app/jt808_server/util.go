@@ -42,7 +42,7 @@ type LbsResp struct {
 	LocType   int
 }
 
-func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
+func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) error {
 	url := "http://114.215.191.234/locapi"
 
 	var lbsInfo LbsInfo
@@ -185,6 +185,39 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 		return nil
 	}
 
+	fParseZZEEC := func(wifiContent []byte, info *WifiInfo) error {
+		reader := common.NewReader(wifiContent)
+
+		wifiNum, _ := reader.ReadByte()
+
+		var err error
+		for i := 0; i < int(wifiNum); i++ {
+			var mac Mac
+			var byteMac []byte
+			byteMac, err = reader.Read(6)
+			if err != nil {
+				return err
+			}
+			strMac := hex.EncodeToString(byteMac)
+			var parts []string
+			for i := 0; i < len(strMac); i += 2 {
+				end := i + 2
+				if end > len(strMac) {
+					end = len(strMac)
+				}
+				parts = append(parts, strMac[i:end])
+			}
+			mac.MacAddr = strings.Join(parts, ":")
+
+			mac.Rssi, err = reader.ReadByte()
+			if err != nil {
+				return err
+			}
+			info.MacList = append(info.MacList, mac)
+		}
+		return nil
+	}
+
 	fParse54 := func(wifiContent []byte, info *WifiInfo) error {
 		reader := common.NewReader(wifiContent)
 		var err error
@@ -268,7 +301,11 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp) error {
 			fParseEE(lbsContent, &lbsInfo)
 		case extra.Extra_0xec{}.ID():
 			wifiContent := ext.(*extra.Extra_0xec).Data()
-			fParseEC(wifiContent, &wifiInfo)
+			if protocol == 7 {
+				fParseZZEEC(wifiContent, &wifiInfo)
+			} else {
+				fParseEC(wifiContent, &wifiInfo)
+			}
 		case extra.Extra_0x54{}.ID():
 			wifiContent := ext.(*extra.Extra_0x54).Data()
 			fParse54(wifiContent, &wifiInfo)
