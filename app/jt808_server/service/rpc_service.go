@@ -34,7 +34,11 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendCmdRequest) 
 		return &resp, err
 	}
 
-	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	if req.Protocol == "7" {
+		storage.SetCmdLogZZE(req.Imei, req.Content, req.TimeId, req.Protocol)
+	} else {
+		storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
+	}
 
 	return &resp, nil
 }
@@ -56,7 +60,7 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShor
 		if err != nil {
 			return &resp, err
 		}
-		storage.SetCmdLog(req.Imei, 10, req.TimeId) //应答中没有seqno, 用type代替
+		storage.SetCmdLog(req.Imei, 10, req.TimeId, req.Protocol) //应答中没有seqno, 用type代替
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
@@ -82,7 +86,7 @@ func (s *deviceService) VorRecordSwitch(ctx context.Context, req *proto.VorRecor
 		if err != nil {
 			return &resp, err
 		}
-		storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+		storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
@@ -131,7 +135,7 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 		case "4":
 			content = "TIME#30#"
 		}
-	case "5":
+	case "5", "7":
 		switch req.Mode {
 		case "1":
 			content = "MODE,2,30,1,1,1#"
@@ -145,23 +149,22 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 		return &resp, errors.New("protocol not supported")
 	}
 
-	if req.Protocol == "3" || req.Protocol == "5" {
+	if req.Protocol == "3" || req.Protocol == "5" || req.Protocol == "7" {
 		seqNo, err := session.SendCmd(content)
 		if err != nil {
 			return &resp, err
 		}
-		storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode)
+		storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode, req.Protocol)
+		return &resp, nil
+	} else {
+		param := writer.Bytes()
+		seqNo, err := session.SetLocMode(param)
+		if err != nil {
+			return &resp, err
+		}
+		storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode, req.Protocol)
 		return &resp, nil
 	}
-
-	param := writer.Bytes()
-	seqNo, err := session.SetLocMode(param)
-	if err != nil {
-		return &resp, err
-	}
-	storage.SetCmdLogMode(req.Imei, seqNo, req.TimeId, req.Mode)
-
-	return &resp, nil
 }
 
 func (s *deviceService) Locate(ctx context.Context, req *proto.LocateRequest) (*proto.CommonReply, error) {
@@ -179,7 +182,7 @@ func (s *deviceService) Locate(ctx context.Context, req *proto.LocateRequest) (*
 	if err != nil {
 		return &resp, err
 	}
-	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 
 	return &resp, nil
 }
@@ -219,7 +222,7 @@ func (s *deviceService) HandelDeviceCtrl(ctx context.Context, req *proto.HandelD
 	if err != nil {
 		return &resp, err
 	}
-	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 
 	return &resp, nil
 }
@@ -239,7 +242,7 @@ func (s *deviceService) HandelRestart(ctx context.Context, req *proto.HandelRest
 	if err != nil {
 		return &resp, err
 	}
-	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 
 	return &resp, nil
 }

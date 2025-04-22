@@ -244,7 +244,7 @@ func handle15(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x15)
 	fmt.Printf("%v:handle 15 %v, %v\n", session.ID(), message, entity)
 
-	result, err := storage.GetCmdLog(session.ID(), uint16(entity.SysFlag))
+	result, err := storage.GetCmdLog(session.ID(), uint16(entity.SysFlag), session.Protocol)
 	if err != nil {
 		return
 	}

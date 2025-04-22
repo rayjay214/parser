@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	geo "github.com/kellydunn/golang-geo"
 	"github.com/qichengzx/coordtransform"
@@ -27,6 +28,15 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0102)
 	log.Infof("handle 0102 %v", entity)
 
+	//假关机状态下不更新状态
+	if session.Protocol == 7 {
+		fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online").Result()
+		if fakeOnline == "0" {
+			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+			return
+		}
+	}
+
 	set, err := storage.SetStartTime(session.ID())
 	if err == nil && set {
 		storage.UpdateStartTime(session.ID())
@@ -44,6 +54,16 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 
 func handle0002(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0002)
+
+	//假关机状态下不更新状态
+	if session.Protocol == 7 {
+		lastRunInfo, _ := storage.GetRunInfo(session.ID())
+		if lastRunInfo["state"] == "3" {
+			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+			return
+		}
+	}
+
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
 		//"state":     "3",
@@ -345,7 +365,7 @@ func handle1107(session *jt808_base.Session, message *jt808.Message) {
 func handle1300(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1300)
 	log.Infof("handle 1300 %v", entity)
-	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo)
+	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo, session.Protocol)
 	if err != nil {
 		return
 	}
@@ -361,8 +381,8 @@ func handle1300(session *jt808_base.Session, message *jt808.Message) {
 
 func handle6006(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x6006)
-	log.Infof("handle 6006 %v", entity)
-	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo)
+	log.Infof("%v handle 6006 %v", session.ID(), entity)
+	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo, session.Protocol)
 	if err != nil {
 		return
 	}
@@ -388,6 +408,34 @@ func handle6006(session *jt808_base.Session, message *jt808.Message) {
 		}
 	}
 
+	//假关机将状态置为离线
+	if _, ok := result["fake_offline"]; ok {
+		info := map[string]interface{}{
+			"comm_time": time.Now(),
+			"state":     "1",
+		}
+		storage.SetRunInfo(message.Header.Imei, info)
+		if err != nil {
+			log.Warnf("%v update state failed %v", session.ID(), err)
+		}
+		log.Warnf("%v update fake offline", session.ID())
+		storage.Rdb.HSet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online", "0")
+	}
+
+	//假关机开机
+	if _, ok := result["fake_online"]; ok {
+		info := map[string]interface{}{
+			"comm_time": time.Now(),
+			"state":     "3",
+		}
+		storage.SetRunInfo(message.Header.Imei, info)
+		if err != nil {
+			log.Warnf("%v update state failed %v", session.ID(), err)
+		}
+		log.Warnf("%v update fake online", session.ID())
+		storage.Rdb.HSet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online", "1")
+	}
+
 	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 	if err != nil {
 		log.Infof("err %v", err)
@@ -403,7 +451,7 @@ func handle0116(session *jt808_base.Session, message *jt808.Message) {
 		Schedule:  0.0,
 	}
 	log.Infof("%v handle 0116 %v", session.ID(), entity)
-	result, err := storage.GetCmdLog(session.ID(), 10)
+	result, err := storage.GetCmdLog(session.ID(), 10, session.Protocol)
 	if err != nil {
 		return
 	}
@@ -652,11 +700,15 @@ func handle0001(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0001)
 	log.Infof("%v handle 0001 %v", session.ID(), entity)
 
-	if session.Protocol == 5 && entity.ReplyMsgID == uint16(jt808.MsgT808_0x6006) {
+	if session.Protocol == 5 && entity.ReplyMsgID == uint16(jt808.MsgT808_0x8300) {
 		return
 	}
 
-	result, err := storage.GetCmdLog(session.ID(), entity.ReplyMsgSerialNo)
+	if session.Protocol == 7 && entity.ReplyMsgID == uint16(jt808.MsgT808_0x8300) {
+		return
+	}
+
+	result, err := storage.GetCmdLog(session.ID(), entity.ReplyMsgSerialNo, session.Protocol)
 	if err != nil {
 		return
 	}
