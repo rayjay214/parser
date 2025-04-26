@@ -55,7 +55,7 @@ const (
 	// Apn上传
 	TypeExtra_0xf7 Type = 0xf7
 	//fg add
-    // 主电源电压
+	// 主电源电压
 	TypeExtra_0x2b Type = 0x2b
 	// 运动或静止
 	TypeExtra_0x32 Type = 0x32
@@ -160,21 +160,24 @@ var entityMapper = map[byte]func() Entity{
 	byte(TypeExtra_0xf9): func() Entity {
 		return new(Extra_0xf9)
 	},
-    //fg add
-    /*
 	byte(TypeExtra_0x2b): func() Entity {
 		return new(Extra_0x2b)
 	},
-	byte(TypeExtra_0x5d): func() Entity {
-		return new(Extra_0x5d)
-	},
-	byte(TypeExtra_0x32): func() Entity {
-		return new(Extra_0x32)
-	},
-	byte(TypeExtra_0xb2): func() Entity {
-		return new(Extra_0xb2)
-	},
-    */
+	//fg add
+	/*
+		byte(TypeExtra_0x2b): func() Entity {
+			return new(Extra_0x2b)
+		},
+		byte(TypeExtra_0x5d): func() Entity {
+			return new(Extra_0x5d)
+		},
+		byte(TypeExtra_0x32): func() Entity {
+			return new(Extra_0x32)
+		},
+		byte(TypeExtra_0xb2): func() Entity {
+			return new(Extra_0xb2)
+		},
+	*/
 }
 
 // 类型注册

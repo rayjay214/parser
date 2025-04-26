@@ -393,3 +393,36 @@ func calDuration(fileSize int) int {
 	}
 	return quotient
 }
+
+func CalculateBatteryPercent(voltage int) int {
+	if voltage >= 4150 {
+		return 100
+	} else if voltage >= 4090 {
+		return 99
+	} else if voltage >= 4000 {
+		return 95
+	} else if voltage >= 3980 {
+		return 90
+	} else if voltage >= 3940 {
+		return 85
+	} else if voltage >= 3900 {
+		return 80
+	} else if voltage >= 3840 {
+		return 70
+	} else if voltage >= 3780 {
+		return 60
+	} else if voltage >= 3740 {
+		return 50
+	} else if voltage >= 3700 {
+		return 40
+	} else if voltage >= 3670 {
+		return 30
+	} else if voltage >= 3640 {
+		return 20
+	} else if voltage >= 3610 {
+		return 10
+	} else if voltage >= 3590 {
+		return 5
+	}
+	return 1
+}

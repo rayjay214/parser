@@ -28,6 +28,14 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0102)
 	log.Infof("handle 0102 %v", entity)
 
+	deviceInfo, _ := storage.GetDevice(message.Header.Imei)
+	if len(deviceInfo) == 0 {
+		log.Warnf("imei %v not exist", message.Header.Imei)
+		session.Close()
+		return
+	}
+	session.Protocol, _ = strconv.Atoi(deviceInfo["protocol"])
+
 	//假关机状态下不更新状态
 	if session.Protocol == 7 {
 		fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online").Result()
@@ -144,13 +152,23 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 	}
 	locTypeBase := 0
 
+	if protocol == 7 {
+		if entity.Speed > 0 {
+			info["state"] = "2"
+		} else {
+			info["state"] = "3"
+		}
+	}
+
 	for _, ext := range entity.Extras {
 		switch ext.ID() {
 		case extra.Extra_0x01{}.ID():
 			info["distance"] = ext.(*extra.Extra_0x01).Value()
 		case extra.Extra_0x04{}.ID():
 			v := ext.(*extra.Extra_0x04).Value().(extra.Extra_0x04_Value)
-			info["power"] = v.Power
+			if protocol != 7 {
+				info["power"] = v.Power
+			}
 			info["acc_power"] = v.Status
 		case extra.Extra_0xe4{}.ID():
 			v := ext.(*extra.Extra_0xe4).Value().(extra.Extra_0xe4_Value)
@@ -203,6 +221,10 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 				info["state"] = "3"
 				locTypeBase = 3
 			}
+		case extra.Extra_0x2b{}.ID():
+			v := ext.(*extra.Extra_0x2b).Value().(extra.Extra_0x2b_Value)
+			power := CalculateBatteryPercent(int(v.Voltage1 * 10))
+			info["power"] = fmt.Sprintf("%v", power)
 		}
 	}
 

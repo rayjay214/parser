@@ -49,20 +49,12 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 
 		//_, ok := handler.server.sessions[message.Header.Imei]
 		if message.Header.MsgID == jt808.MsgT808_0x0100 || message.Header.MsgID == jt808.MsgT808_0x0102 {
-			deviceInfo, _ := storage.GetDevice(message.Header.Imei)
-			if len(deviceInfo) == 0 {
-				log.Warnf("imei %v not exist", message.Header.Imei)
-				sess.Close()
-				break
-			}
-
 			session = newSession(handler.server, sess)
 			handler.server.mutex.Lock()
 			delete(handler.server.sessions, message.Header.Imei)
 			handler.server.sessions[message.Header.Imei] = session
 			session.imei = message.Header.Imei
 			session.UserData = make(map[string]interface{}, 8)
-			session.Protocol, _ = strconv.Atoi(deviceInfo["protocol"])
 			handler.server.mutex.Unlock()
 			handler.server.timer.Update(strconv.FormatUint(session.ID(), 10))
 			sess.AddCloseCallback(nil, nil, func() {
