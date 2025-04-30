@@ -51,7 +51,7 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	}
 
 	info := map[string]interface{}{
-		"status":    "2", //maybe useless
+		//"status":    "2", //maybe useless
 		"state":     "2",
 		"comm_time": time.Now(),
 	}
@@ -74,7 +74,7 @@ func handle0002(session *jt808_base.Session, message *jt808.Message) {
 
 	info := map[string]interface{}{
 		"comm_time": time.Now(),
-		//"state":     "3",
+		"state":     "3",
 	}
 
 	for _, ext := range entity.Extras {

@@ -127,7 +127,7 @@ func (server *Server) AddHandler(msgID jt808.MsgID, handler MessageHandler) {
 // 处理关闭
 func (server *Server) handleClose(session *Session) {
 	server.mutex.Lock()
-	delete(server.sessions, session.ID())
+	//delete(server.sessions, session.ID())
 	server.mutex.Unlock()
 
 	server.timer.Remove(strconv.FormatUint(session.ID(), 10))

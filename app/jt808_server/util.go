@@ -43,7 +43,8 @@ type LbsResp struct {
 }
 
 func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) error {
-	url := "http://114.215.191.234/locapi"
+	//url := "http://114.215.191.234/locapi"
+	url := "http://121.196.220.14/locapi"
 
 	var lbsInfo LbsInfo
 	var wifiInfo WifiInfo
