@@ -769,6 +769,12 @@ func handle0001(session *jt808_base.Session, message *jt808.Message) {
 }
 
 func handle0107(session *jt808_base.Session, message *jt808.Message) {
+	//除了在这儿之外，其他都通过1107处理
+	if session.Protocol != 7 {
+		session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+		return
+	}
+
 	entity := message.Body.(*jt808.T808_0x0107)
 	log.Infof("%v handle 0107 %v", session.ID(), entity)
 
