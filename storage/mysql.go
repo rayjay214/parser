@@ -126,8 +126,8 @@ func CheckAsValue(imei uint64, asType string) error {
 		"AND (total-used>0) AND service_type=? order by end_time limit 1",
 		imei, time.Now(), time.Now(), asType)
 
-	log.Infof("%v as type %v total %v used %v", imei, asType, total, used)
 	err := row.Scan(&total, &used)
+	log.Infof("%v as type %v total %v used %v", imei, asType, total, used)
 	return err
 }
 

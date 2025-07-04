@@ -2,8 +2,8 @@ package storage
 
 import (
 	"github.com/aliyun-sdk/sms-go"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/ini.v1"
-	"log"
 	"strings"
 )
 
@@ -23,7 +23,7 @@ func init() {
 	//tc = "SMS_262415663"
 	client, err = sms.New(ak, sk, sms.SignName(sn), sms.Template(tc))
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 }
 
@@ -36,8 +36,10 @@ func Send(phone string, imei string, alarm string) error {
 			"alarm": alarmPrint,
 		}),
 	)
+	log.Infof("send sms to %s, imei: %s, alarm: %s", phone, imei, alarmPrint)
+
 	if err != nil {
-		log.Println(err)
+		log.Infof("send sms to %s, imei: %s, alarm: %s, err:%v", phone, imei, alarmPrint, err)
 	}
 	return err
 }
