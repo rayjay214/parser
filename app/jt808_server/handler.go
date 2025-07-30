@@ -45,6 +45,15 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 		}
 	}
 
+	//C3假关机状态下不更新状态
+	if session.Protocol == 8 {
+		fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("fakeoff_%v", session.ID()), "fake_heartbeat").Result()
+		if fakeOnline == "1" {
+			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+			return
+		}
+	}
+
 	set, err := storage.SetStartTime(session.ID())
 	if err == nil && set {
 		storage.UpdateStartTime(session.ID())
@@ -107,9 +116,20 @@ func handle0002(session *jt808_base.Session, message *jt808.Message) {
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
 
+func handle0f02(session *jt808_base.Session, message *jt808.Message) {
+	key := fmt.Sprintf("fakeoff_%v", message.Header.Imei)
+	info := map[string]interface{}{
+		"fake_heartbeat": 1,
+	}
+	storage.Rdb.HSet(context.Background(), key, info).Result()
+	storage.Rdb.Expire(context.Background(), key, 600*time.Second).Result()
+
+	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+}
+
 func handle0808(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0808)
-	session.Protocol = 2 //2013
+	//session.Protocol = 2 //2013
 	log.Infof("handle 0808 %v", entity)
 }
 
@@ -386,7 +406,7 @@ func handle1107(session *jt808_base.Session, message *jt808.Message) {
 
 func handle1300(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1300)
-	log.Infof("handle 1300 %v", entity)
+	log.Infof("handle 1300 %v", message.Header.Imei)
 	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo, session.Protocol)
 	if err != nil {
 		return
@@ -395,6 +415,36 @@ func handle1300(session *jt808_base.Session, message *jt808.Message) {
 	if v, ok := result["timeid"]; ok {
 		timeid, _ = strconv.ParseUint(v, 10, 64)
 	}
+
+	//假关机将状态置为离线
+	if _, ok := result["fake_offline"]; ok {
+		info := map[string]interface{}{
+			"comm_time": time.Now(),
+			"state":     "1",
+		}
+		storage.SetRunInfo(message.Header.Imei, info)
+		if err != nil {
+			log.Warnf("%v update state failed %v", session.ID(), err)
+		}
+		log.Warnf("%v update fake offline", session.ID())
+		storage.Rdb.HSet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online", "0")
+	}
+
+	//假关机开机
+	if _, ok := result["fake_online"]; ok {
+		info := map[string]interface{}{
+			"comm_time": time.Now(),
+			"state":     "3",
+		}
+		storage.SetRunInfo(message.Header.Imei, info)
+		if err != nil {
+			log.Warnf("%v update state failed %v", session.ID(), err)
+		}
+		log.Warnf("%v update fake online", session.ID())
+		storage.Rdb.HSet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online", "1")
+		storage.Rdb.Del(context.Background(), fmt.Sprintf("fakeoff_%v", session.ID()))
+	}
+
 	err = storage.UpdateCmdResponse(session.ID(), timeid, entity.Content)
 	if err != nil {
 		log.Infof("err %v", err)

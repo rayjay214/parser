@@ -153,7 +153,9 @@ func (message *Message) Decode(data []byte, key ...*rsa.PrivateKey) error {
 	}
 
 	// 解码消息体
-	if uint16(len(buffer)) != header.Property.GetBodySize() {
+	// 暂时兼容xc的垃圾设备
+	// 7e13000002037371050719003800040000377e(消息长度不对)
+	if uint16(len(buffer)) != header.Property.GetBodySize() && header.MsgID != 0x1300 {
 		log.WithFields(log.Fields{
 			"id":     fmt.Sprintf("0x%x", header.MsgID),
 			"expect": header.Property.GetBodySize(),

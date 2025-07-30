@@ -36,6 +36,8 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendCmdRequest) 
 
 	if req.Protocol == "7" {
 		storage.SetCmdLogZZE(req.Imei, req.Content, req.TimeId, req.Protocol)
+	} else if req.Protocol == "8" {
+		storage.SetCmdLogC3(req.Imei, req.Content, req.TimeId, req.Protocol)
 	} else {
 		storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 	}

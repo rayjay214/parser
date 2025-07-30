@@ -101,6 +101,35 @@ func SetCmdLogZZE(imei uint64, content string, timeid uint64, protocol string) e
 	return err
 }
 
+func SetCmdLogC3(imei uint64, content string, timeid uint64, protocol string) error {
+	key := fmt.Sprintf("cmdlog_%v", imei)
+
+	var info map[string]interface{}
+	if content == "SL GJ" {
+		info = map[string]interface{}{
+			"timeid":       timeid,
+			"fake_offline": 1,
+		}
+	} else if content == "SL KJ" {
+		info = map[string]interface{}{
+			"timeid":      timeid,
+			"fake_online": 1,
+		}
+	} else {
+		info = map[string]interface{}{
+			"timeid": timeid,
+		}
+	}
+
+	_, err := Rdb.HSet(context.Background(), key, info).Result()
+
+	_, err = Rdb.Expire(context.Background(), key, 180*time.Second).Result()
+
+	Rdb.Del(context.Background(), fmt.Sprintf("fakeoff_%v", imei))
+
+	return err
+}
+
 func SetCmdLogMode(imei uint64, seqNo uint16, timeid uint64, mode string, protocol string) error {
 	var key string
 	if protocol == "7" {
@@ -137,7 +166,7 @@ func SetCmdLogShakeValue(imei uint64, seqNo uint16, timeid uint64, value int32) 
 
 func GetCmdLog(imei uint64, seqNo uint16, protocol int) (map[string]string, error) {
 	var key string
-	if protocol == 7 {
+	if protocol == 7 || protocol == 8 {
 		key = fmt.Sprintf("cmdlog_%v", imei)
 	} else {
 		key = fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)

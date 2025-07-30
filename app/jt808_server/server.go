@@ -29,13 +29,14 @@ func main() {
 	storage.LoadConfig("config.ini")
 	storage.InitRawLog()
 	server, _ := jt808_base.NewServer(jt808_base.Options{
-		Keepalive:       420,
+		Keepalive:       int64(storage.Conf.Jt808Server.KeepaliveSecond), // 转换为秒
 		AutoMergePacket: true,
 		CloseHandler:    nil,
 	})
 	server.AddHandler(jt808.MsgT808_0x0100, handle0100)
 	server.AddHandler(jt808.MsgT808_0x0102, handle0102)
 	server.AddHandler(jt808.MsgT808_0x0002, handle0002)
+	server.AddHandler(jt808.MsgT808_0x0f02, handle0f02)
 	server.AddHandler(jt808.MsgT808_0x0200, handle0200)
 	server.AddHandler(jt808.MsgT808_0x0704, handle0704)
 	server.AddHandler(jt808.MsgT808_0x0808, handle0808)

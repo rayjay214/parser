@@ -8,6 +8,8 @@ const (
 	MsgT808_0x0001 MsgID = 0x0001
 	// 终端心跳
 	MsgT808_0x0002 MsgID = 0x0002
+	// 假心跳
+	MsgT808_0x0f02 MsgID = 0x0f02
 	// 终端注销
 	MsgT808_0x0003 MsgID = 0x0003
 	// 终端注册
@@ -213,6 +215,9 @@ var entityMapper = map[uint16]func() Entity{
 	},
 	uint16(MsgT808_0x0002): func() Entity {
 		return new(T808_0x0002)
+	},
+	uint16(MsgT808_0x0f02): func() Entity {
+		return new(T808_0x0f02)
 	},
 	uint16(MsgT808_0x0003): func() Entity {
 		return new(T808_0x0003)

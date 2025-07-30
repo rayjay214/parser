@@ -13,7 +13,8 @@ type Config struct {
 	} `ini:"sms"`
 
 	Jt808Server struct {
-		Port int `ini:"port"`
+		Port            int `ini:"port"`
+		KeepaliveSecond int `ini:"keepalive_second"`
 	} `ini:"jt808_server"`
 
 	Cassandra struct {
