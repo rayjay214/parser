@@ -406,14 +406,23 @@ func handle1107(session *jt808_base.Session, message *jt808.Message) {
 
 func handle1300(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1300)
-	log.Infof("handle 1300 %v", message.Header.Imei)
 	result, err := storage.GetCmdLog(session.ID(), entity.AckSeqNo, session.Protocol)
 	if err != nil {
 		return
 	}
+
+	log.Infof("%v handle 1300, content:%v, result:%v", message.Header.Imei, entity.Content, result)
 	var timeid uint64
 	if v, ok := result["timeid"]; ok {
 		timeid, _ = strconv.ParseUint(v, 10, 64)
+	}
+
+	//同步定位模式
+	if mode, ok := result["mode"]; ok {
+		err = storage.UpdateMode(session.ID(), mode)
+		if err != nil {
+			log.Warnf("%v update mode failed %v", session.ID(), err)
+		}
 	}
 
 	//假关机将状态置为离线

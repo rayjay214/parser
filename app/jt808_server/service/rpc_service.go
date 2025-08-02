@@ -146,12 +146,23 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 		case "4":
 			content = "MODE,2,1800,1,1,1#"
 		}
+	case "8":
+		switch req.Mode {
+		case "1":
+			content = "NPMODE,10,15,0#"
+		case "2":
+			content = "NPMODE,30,0,0#"
+		case "4":
+			content = "NPMODE,180,0,0#"
+		case "3":
+			content = "NPMODE,0,0,0#"
+		}
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")
 	}
 
-	if req.Protocol == "3" || req.Protocol == "5" || req.Protocol == "7" {
+	if req.Protocol == "3" || req.Protocol == "5" || req.Protocol == "7" || req.Protocol == "8" {
 		seqNo, err := session.SendCmd(content)
 		if err != nil {
 			return &resp, err

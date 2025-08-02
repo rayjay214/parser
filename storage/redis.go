@@ -132,7 +132,7 @@ func SetCmdLogC3(imei uint64, content string, timeid uint64, protocol string) er
 
 func SetCmdLogMode(imei uint64, seqNo uint16, timeid uint64, mode string, protocol string) error {
 	var key string
-	if protocol == "7" {
+	if protocol == "7" || protocol == "8" {
 		key = fmt.Sprintf("cmdlog_%v", imei)
 	} else {
 		key = fmt.Sprintf("cmdlog_%v_%v", imei, seqNo)
