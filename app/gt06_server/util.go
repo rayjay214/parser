@@ -37,8 +37,9 @@ type LbsResp struct {
 	LocType   int
 }
 
-func getLbsLocation(lbsInfo LbsInfo, lbsResp *LbsResp) error {
-	url := "http://114.215.191.234/locapi"
+func getLbsLocation(lbsInfo LbsInfo, lbsResp *LbsResp, imei uint64) error {
+	//url := "http://114.215.191.234/locapi"
+	url := "http://121.196.220.14/locapi"
 
 	lbsResp.LocType = 1
 
@@ -52,7 +53,7 @@ func getLbsLocation(lbsInfo LbsInfo, lbsResp *LbsResp) error {
 	}
 	body["nearbts"] = strings.Join(btsList, "|")
 	byteData, _ := json.Marshal(body)
-	fmt.Printf("post data is %v", string(byteData))
+	fmt.Printf("%v post data is %v\n", imei, string(byteData))
 	reader := bytes.NewReader(byteData)
 
 	request, err := http.NewRequest("POST", url, reader)
@@ -72,7 +73,7 @@ func getLbsLocation(lbsInfo LbsInfo, lbsResp *LbsResp) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("resp is %v", string(respBytes))
+	fmt.Printf("%v resp is %v\n", imei, string(respBytes))
 
 	err = json.Unmarshal(respBytes, lbsResp)
 	if err != nil {

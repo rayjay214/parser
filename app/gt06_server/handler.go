@@ -13,7 +13,7 @@ import (
 
 func handle01(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x01)
-	fmt.Printf("%v:handle 01 %v, %v\n", session.ID(), message, entity)
+	log.Infof("%v:handle 01 %v, %v", session.ID(), message, entity)
 
 	set, err := storage.SetStartTime(session.ID())
 	if err == nil && set {
@@ -31,7 +31,7 @@ func handle01(session *gt06_base.Session, message *gt06.Message) {
 
 func handle12(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x12)
-	fmt.Printf("%v:handle 12 %v, %v\n", session.ID(), message, entity)
+	log.Infof("%v:handle 12 %v, %v", session.ID(), message, entity)
 }
 
 func handleA1(session *gt06_base.Session, message *gt06.Message) {
@@ -50,7 +50,7 @@ func handleA1(session *gt06_base.Session, message *gt06.Message) {
 			lbsInfo.BtsList = append(lbsInfo.BtsList, bts)
 		}
 	}
-	getLbsLocation(lbsInfo, &lbsResp)
+	getLbsLocation(lbsInfo, &lbsResp, session.ID())
 
 	date := entity.Time.Format("20060102")
 	iDate, _ := strconv.Atoi(date)
@@ -81,19 +81,18 @@ func handleA1(session *gt06_base.Session, message *gt06.Message) {
 
 	storage.SetRunInfo(session.ID(), info)
 
-	fmt.Printf("handle a1 %v, %v\n", message, entity)
+	log.Infof("handle a1 %v, %v\n", message, entity)
 }
 
 func handle94(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x94)
-	fmt.Printf("%v:handle 94 %v, %v\n", session.ID(), message, entity)
+	log.Infof("%v:handle 94 %v, %v", session.ID(), message, entity)
 	if entity.SubProto == 0x0a {
 		var hexStrings []string
 		for _, b := range entity.Content[16:26] {
 			hexStrings = append(hexStrings, fmt.Sprintf("%02X", b))
 		}
 		iccid := strings.Join(hexStrings, "")
-		fmt.Println(iccid)
 		deviceInfo, err := storage.GetDevice(session.ID())
 		if err != nil {
 			return
@@ -114,6 +113,7 @@ func handle94(session *gt06_base.Session, message *gt06.Message) {
 
 func handle20(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x20)
+	log.Infof("%v:handle 20 %v, %v", session.ID(), message, entity)
 
 	var lbsResp LbsResp
 	var lbsInfo LbsInfo
@@ -131,7 +131,7 @@ func handle20(session *gt06_base.Session, message *gt06.Message) {
 
 	//忽略wifi
 
-	getLbsLocation(lbsInfo, &lbsResp)
+	getLbsLocation(lbsInfo, &lbsResp, session.ID())
 
 	//07设备定位时间无用，采用服务器的
 	if session.Protocol == 3 {
@@ -160,7 +160,7 @@ func handle20(session *gt06_base.Session, message *gt06.Message) {
 
 func handle13(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x13)
-	fmt.Printf("%v:handle 13 %v, %v\n", session.ID(), message, entity)
+	log.Infof("%v:handle 13 %v, %v", session.ID(), message, entity)
 
 	info := map[string]interface{}{
 		"state":     "4",
@@ -174,6 +174,7 @@ func handle13(session *gt06_base.Session, message *gt06.Message) {
 
 func handle16(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x16)
+	log.Infof("%v:handle 16 %v, %v", session.ID(), message, entity)
 
 	var lbsResp LbsResp
 	var lbsInfo LbsInfo
@@ -186,7 +187,7 @@ func handle16(session *gt06_base.Session, message *gt06.Message) {
 	bts.Rssi = 0
 	lbsInfo.BtsList = append(lbsInfo.BtsList, bts)
 
-	getLbsLocation(lbsInfo, &lbsResp)
+	getLbsLocation(lbsInfo, &lbsResp, session.ID())
 
 	//07设备定位时间无用，采用服务器的
 	if session.Protocol == 3 {
@@ -242,7 +243,7 @@ func handleLocation(imei uint64, loc storage.Location, lbsResp LbsResp, locTime 
 
 func handle15(session *gt06_base.Session, message *gt06.Message) {
 	entity := message.Body.(*gt06.Kks_0x15)
-	fmt.Printf("%v:handle 15 %v, %v\n", session.ID(), message, entity)
+	log.Infof("%v:handle 15 %v, %v", session.ID(), message, entity)
 
 	result, err := storage.GetCmdLog(session.ID(), uint16(entity.SysFlag), session.Protocol)
 	if err != nil {

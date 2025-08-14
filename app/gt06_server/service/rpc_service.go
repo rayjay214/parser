@@ -33,7 +33,7 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendGt06CmdReque
 		return &resp, err
 	}
 
-	storage.SetCmdLog(req.Imei, seqNo, req.TimeId)
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
 
 	return &resp, nil
 }
