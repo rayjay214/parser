@@ -384,22 +384,31 @@ func handle1007(session *jt808_base.Session, message *jt808.Message) {
 
 func handle1107(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x1107)
-	log.Infof("handle 1107 %v", entity)
+	log.Infof("%v handle 1107 %v", session.ID(), entity)
 
-	deviceInfo, err := storage.GetDevice(session.ID())
+	log.Infof("%v update iccid to %v", session.ID(), entity.Iccid)
+	err := storage.UpdateIccid(session.ID(), entity.Iccid)
 	if err != nil {
-		session.Reply(message, jt808.T808_0x8100_ResultSuccess)
-		return
+		log.Warnf("%v update iccid failed %v", session.ID(), err)
 	}
-	if iccid, ok := deviceInfo["iccid"]; ok {
-		if iccid != entity.Iccid {
-			log.Infof("%v update iccid from %v to %v", session.ID(), iccid, entity.Iccid)
-			err = storage.UpdateIccid(session.ID(), entity.Iccid)
-			if err != nil {
-				log.Warnf("%v update iccid failed %v", session.ID(), err)
+
+	/*
+		deviceInfo, err := storage.GetDevice(session.ID())
+		if err != nil {
+			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+			return
+		}
+
+		if iccid, ok := deviceInfo["iccid"]; ok {
+			if iccid != entity.Iccid {
+				log.Infof("%v update iccid from %v to %v", session.ID(), iccid, entity.Iccid)
+				err = storage.UpdateIccid(session.ID(), entity.Iccid)
+				if err != nil {
+					log.Warnf("%v update iccid failed %v", session.ID(), err)
+				}
 			}
 		}
-	}
+	*/
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)
 }
