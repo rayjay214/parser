@@ -32,10 +32,19 @@ func (header *Header) Encode() ([]byte, error) {
 func (header *Header) Decode(data []byte) error {
 	strData := string(data)
 	strList := strings.Split(strData, "*")
+	if len(strList) != 4 {
+		return ErrInvalidHeader
+	}
 	header.Prefix = strList[0]
 	header.Imei = strList[1]
 	header.MsgLen = strList[2]
-	header.Proto = strList[3]
+	content := strList[3]
+	if strings.Contains(content, ",") {
+		strList2 := strings.Split(content, ",")
+		header.Proto = strList2[0]
+	} else {
+		header.Proto = content
+	}
 
 	return nil
 }

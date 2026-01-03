@@ -1,8 +1,8 @@
-package gt06_base
+package hl3g_base
 
 import (
 	"github.com/rayjay214/link"
-	"github.com/rayjay214/parser/protocol/gt06"
+	"github.com/rayjay214/parser/protocol/hl3g"
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
 	"reflect"
@@ -18,7 +18,7 @@ type sessionHandler struct {
 func (handler sessionHandler) HandleSession(sess *link.Session) {
 	log.WithFields(log.Fields{
 		"id": sess.ID(),
-	}).Info("[gt06] new session created")
+	}).Info("[hl3g] new session created")
 
 	var session *Session
 
@@ -31,7 +31,7 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 		}
 
 		// 分发消息
-		message := msg.(gt06.Message)
+		message := msg.(hl3g.Message)
 		if message.Body == nil || reflect.ValueOf(message.Body).IsNil() {
 			if session != nil {
 				//session.Reply(&message, jt808.T808_0x8001ResultUnsupported)
@@ -39,20 +39,20 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 			continue
 		}
 
-		if message.Body.MsgID() == 0x01 {
-			body := message.Body.(*gt06.Kks_0x01)
-			deviceInfo, _ := storage.GetDevice(body.Imei)
+		if message.Header.Proto == "LK2" {
+			imei, _ := strconv.ParseUint(message.Header.Imei, 10, 64)
+			deviceInfo, _ := storage.GetDevice(imei)
 			if len(deviceInfo) == 0 {
-				log.Warnf("imei %v not exist", body.Imei)
+				log.Warnf("imei %v not exist", message.Header.Imei)
 				sess.Close()
 				break
 			}
 
 			session = newSession(handler.server, sess)
 			handler.server.mutex.Lock()
-			delete(handler.server.sessions, body.Imei)
-			handler.server.sessions[body.Imei] = session
-			session.imei = body.Imei
+			delete(handler.server.sessions, imei)
+			handler.server.sessions[imei] = session
+			session.imei = imei
 			session.UserData = make(map[string]interface{}, 8)
 			session.Protocol, _ = strconv.Atoi(deviceInfo["protocol"])
 			handler.server.mutex.Unlock()

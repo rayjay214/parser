@@ -1,10 +1,10 @@
-package gt06_base
+package hl3g_base
 
 import (
 	"errors"
 	"fmt"
 	"github.com/rayjay214/link"
-	"github.com/rayjay214/parser/protocol/gt06"
+	"github.com/rayjay214/parser/protocol/hl3g"
 	"github.com/rayjay214/parser/server_base/common"
 	"github.com/rayjay214/parser/storage"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +34,7 @@ type Server struct {
 	messageHandlers sync.Map
 }
 
-type MessageHandler func(*Session, *gt06.Message)
+type MessageHandler func(*Session, *hl3g.Message)
 
 // 创建服务
 func NewServer(options Options) (*Server, error) {
@@ -90,7 +90,7 @@ func (server *Server) GetSession(id uint64) (*Session, bool) {
 }
 
 // 添加消息处理
-func (server *Server) AddHandler(msgID gt06.MsgID, handler MessageHandler) {
+func (server *Server) AddHandler(msgID hl3g.MsgID, handler MessageHandler) {
 	if handler != nil {
 		server.messageHandlers.Store(msgID, handler)
 	}
@@ -122,7 +122,7 @@ func (server *Server) handleClose(session *Session) {
 
 	log.WithFields(log.Fields{
 		"id": session.ID(),
-	}).Info("[gt06] session closed")
+	}).Info("[hl3g] session closed")
 }
 
 // 处理读超时
@@ -146,17 +146,17 @@ func (server *Server) handleReadTimeout(key string) {
 
 	log.WithFields(log.Fields{
 		"id": sessionID,
-	}).Info("[gt06] session read timeout")
+	}).Info("[hl3g] session read timeout")
 }
 
 // 分派消息
-func (server *Server) dispatchMessage(session *Session, message *gt06.Message) {
+func (server *Server) dispatchMessage(session *Session, message *hl3g.Message) {
 	id := message.Body.MsgID()
 	handler, ok := server.messageHandlers.Load(id)
 	if !ok {
 		log.WithFields(log.Fields{
 			"id": fmt.Sprintf("0x%x", message.Body.MsgID),
-		}).Info("[gt06] dispatch message canceled, handler not found")
+		}).Info("[hl3g] dispatch message canceled, handler not found")
 		log.Infof("message is %v", message)
 		return
 	}

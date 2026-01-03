@@ -1,13 +1,10 @@
 package hl3g
 
 import (
-	"encoding/hex"
 	_ "encoding/json"
 	_ "fmt"
 	"github.com/rayjay214/parser/protocol/common"
 	_ "github.com/shopspring/decimal"
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
 	_ "strconv"
 	"strings"
 	_ "time"
@@ -35,20 +32,18 @@ func (entity *HL3G_LK2) Encode() ([]byte, error) {
 }
 
 func (entity *HL3G_LK2) Decode(data []byte) (int, error) {
-	strData := string(data)
+	//去掉第一个逗号和最后一个]
+	strData := string(data[1 : len(data)-1])
 	strList := strings.Split(strData, ",")
-	entity.Manu = strings.TrimPrefix(strList[0], "*")
-	entity.Imei = strList[1]
-	entity.Proto = strList[2]
-	entity.Time = strList[3]
-	entity.DisplayTime = strList[4]
-	entity.Code = strList[5]
-	entity.InfoLen = strList[6]
-	uniCodeInfo := strings.TrimSuffix(strList[7], "#")
-	bUniCodeInfo, _ := hex.DecodeString(uniCodeInfo)
-
-	utf8Content, _, _ := transform.Bytes(unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder(), bUniCodeInfo)
-	entity.Info = string(utf8Content)
+	if len(strList) != 6 {
+		return 0, ErrInvalidBody
+	}
+	entity.Step = strList[0]
+	entity.Roll = strList[1]
+	entity.Power = strList[2]
+	entity.Acc = strList[3]
+	entity.Oil = strList[4]
+	entity.Charge = strList[5]
 
 	return len(data), nil
 }

@@ -20,36 +20,36 @@ const (
 // 消息实体映射
 var entityMapper = map[string]func() Entity{
 	string(Msg_LK2): func() Entity {
-		return new(TQ_V1)
+		return new(HL3G_LK2)
 	},
 	string(Msg_GS1): func() Entity {
-		return new(TQ_V1)
+		return new(HL3G_GS1)
 	},
 	string(Msg_CCID): func() Entity {
-		return new(TQ_V1)
+		return new(HL3G_LK2)
 	},
 	string(Msg_UD): func() Entity {
-		return new(TQ_V2)
+		return new(HL3G_LK2)
 	},
 	string(Msg_UD2): func() Entity {
-		return new(TQ_V4)
+		return new(HL3G_LK2)
 	},
 	string(Msg_AL): func() Entity {
-		return new(TQ_V5)
+		return new(HL3G_LK2)
 	},
 	string(Msg_IP): func() Entity {
-		return new(TQ_V6)
+		return new(HL3G_LK2)
 	},
 	string(Msg_FACTORY): func() Entity {
-		return new(TQ_I1)
+		return new(HL3G_LK2)
 	},
 	string(Msg_VERNO): func() Entity {
-		return new(TQ_R12)
+		return new(HL3G_LK2)
 	},
 	string(Msg_RESET): func() Entity {
-		return new(TQ_Normal)
+		return new(HL3G_LK2)
 	},
 	string(Msg_UPLOAD): func() Entity {
-		return new(TQ_Normal)
+		return new(HL3G_LK2)
 	},
 }

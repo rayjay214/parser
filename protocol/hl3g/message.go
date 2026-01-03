@@ -11,17 +11,46 @@ type Message struct {
 	Body   Entity
 }
 
+// todo
 func (message *Message) Encode() ([]byte, error) {
-	body, err := message.Body.Encode()
+	var body []byte
+	var err error
+	if message.Body != nil {
+		body, err = message.Body.Encode()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	header, err := message.Header.Encode()
 	if err != nil {
 		return nil, err
 	}
 
-	return body, nil
+	if message.Body == nil {
+		header = header[:len(header)-1]
+	}
+
+	msg := string(header) + string(body) + "]"
+
+	return []byte(msg), nil
 }
 
 func (message *Message) Decode(data []byte) error {
-	entity, _, err := message.decodeBody(data[:])
+	strData := string(data)
+	if strData[0:3] != "[3G" {
+		return ErrInvalidMessage
+	}
+
+	var h Header
+	err := h.Decode(data)
+	if err != nil {
+		return err
+	}
+	headerLen := len(h.Proto) + len(h.Imei) + len(h.MsgLen) + len(h.Proto) + 3
+	message.Header = h
+
+	entity, _, err := message.decodeBody(data[headerLen:])
 	if err == nil {
 		message.Body = entity
 	} else {
@@ -30,16 +59,9 @@ func (message *Message) Decode(data []byte) error {
 
 	return nil
 }
-func (message *Message) decodeBody(data []byte) (Entity, int, error) {
-	var strTyp string
-	if data[0] == '*' { //ASCII
-		buf := data[15:17]
-		strTyp = string(buf)
-	} else { //BINARY
-		strTyp = "Normal"
-	}
 
-	creator, ok := entityMapper[strTyp]
+func (message *Message) decodeBody(data []byte) (Entity, int, error) {
+	creator, ok := entityMapper[message.Header.Proto]
 	if !ok {
 		return nil, 0, ErrTypeNotRegistered
 	}

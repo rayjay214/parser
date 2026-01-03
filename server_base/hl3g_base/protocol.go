@@ -1,13 +1,11 @@
-package gt06_base
+package hl3g_base
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"github.com/rayjay214/link"
-	"github.com/rayjay214/parser/protocol/common"
-	"github.com/rayjay214/parser/protocol/gt06"
+	"github.com/rayjay214/parser/protocol/hl3g"
 	"github.com/rayjay214/parser/protocol/jt808/errors"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -45,11 +43,11 @@ func (codec *ProtocolCodec) Close() error {
 
 // 发送消息
 func (codec *ProtocolCodec) Send(msg interface{}) error {
-	message, ok := msg.(gt06.Message)
+	message, ok := msg.(hl3g.Message)
 	if !ok {
 		log.WithFields(log.Fields{
 			"reason": errors.ErrInvalidMessage,
-		}).Error("[gt06] failed to write message")
+		}).Error("[hl3g] failed to write message")
 		return errors.ErrInvalidMessage
 	}
 
@@ -59,18 +57,18 @@ func (codec *ProtocolCodec) Send(msg interface{}) error {
 
 	if err != nil {
 		log.WithFields(log.Fields{
-			"id":     fmt.Sprintf("%v", message.Body.MsgID),
+			"id":     fmt.Sprintf("%v", message.Header.Proto),
 			"reason": err,
-		}).Error("[gt06] failed to write message")
+		}).Error("[hl3g] failed to write message")
 		return err
 	}
 
 	_, err = codec.w.Write(data)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"id":     fmt.Sprintf("0x%v", message.Body.MsgID),
+			"id":     fmt.Sprintf("%v", message.Header.Proto),
 			"reason": err,
-		}).Error("[gt06] failed to write message")
+		}).Error("[hl3g] failed to write message")
 		return err
 	}
 
@@ -116,47 +114,47 @@ func (codec *ProtocolCodec) Receive() (interface{}, error) {
 }
 
 // 从缓冲区读取
-func (codec *ProtocolCodec) readFromBuffer() (gt06.Message, bool, error) {
+func (codec *ProtocolCodec) readFromBuffer() (hl3g.Message, bool, error) {
 	if codec.bufferReceiving.Len() == 0 {
-		return gt06.Message{}, false, nil
+		return hl3g.Message{}, false, nil
 	}
 
 	data := codec.bufferReceiving.Bytes()
 
-	if len(data) < 4 {
-		return gt06.Message{}, false, nil
+	if len(data) < 3 {
+		return hl3g.Message{}, false, nil
 	}
 
-	prefix := binary.BigEndian.Uint16(data[:2])
-	if prefix != 0x7878 && prefix != 0x7979 {
-		return gt06.Message{}, false, errors.ErrInvalidHeader
+	prefix := data[:3]
+	if string(prefix) != "[3G" {
+		return hl3g.Message{}, false, errors.ErrInvalidHeader
 	}
 
-	var dataLen, msgLen int
-	if prefix == 0x7979 {
-		dataLen = int(binary.BigEndian.Uint16(data[2:4]))
-		msgLen = dataLen + 6 //起始位+长度+停止位
-	} else {
-		dataLen = int(data[2])
-		msgLen = dataLen + 5 //起始位+长度+停止位
+	var msgLen int
+	for _, b := range data {
+		if b == ']' {
+			msgLen += 1
+			break
+		}
+		msgLen += 1
 	}
 
 	if len(data) < msgLen {
-		return gt06.Message{}, false, nil
+		return hl3g.Message{}, false, nil
 	}
 
-	var message gt06.Message
+	var message hl3g.Message
 	if err := message.Decode(data[:msgLen]); err != nil {
 		codec.bufferReceiving.Next(msgLen)
 		log.WithFields(log.Fields{
 			"data":   fmt.Sprintf("0x%x", hex.EncodeToString(data[:msgLen])),
 			"reason": err,
 		}).Error("failed to receive message")
-		return gt06.Message{}, false, err
+		return hl3g.Message{}, false, err
 	}
 	codec.bufferReceiving.Next(msgLen)
 
-	log.Infof("rayjay07 recv msg %x", common.GetHex(data[:msgLen]))
+	log.Infof("hl3g recv msg %v", string(data[:msgLen]))
 
 	return message, true, nil
 }
