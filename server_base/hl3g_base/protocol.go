@@ -2,7 +2,6 @@ package hl3g_base
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"github.com/rayjay214/link"
 	"github.com/rayjay214/parser/protocol/hl3g"
@@ -139,6 +138,11 @@ func (codec *ProtocolCodec) readFromBuffer() (hl3g.Message, bool, error) {
 		msgLen += 1
 	}
 
+	//缓冲区只有128字节，判断是否装下了整条消息
+	if data[msgLen-1] != ']' {
+		return hl3g.Message{}, false, nil
+	}
+
 	if len(data) < msgLen {
 		return hl3g.Message{}, false, nil
 	}
@@ -147,7 +151,7 @@ func (codec *ProtocolCodec) readFromBuffer() (hl3g.Message, bool, error) {
 	if err := message.Decode(data[:msgLen]); err != nil {
 		codec.bufferReceiving.Next(msgLen)
 		log.WithFields(log.Fields{
-			"data":   fmt.Sprintf("0x%x", hex.EncodeToString(data[:msgLen])),
+			"data":   fmt.Sprintf("%s", data[:msgLen]),
 			"reason": err,
 		}).Error("failed to receive message")
 		return hl3g.Message{}, false, err

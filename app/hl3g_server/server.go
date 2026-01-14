@@ -34,6 +34,11 @@ func main() {
 		CloseHandler:    nil,
 	})
 	server.AddHandler(hl3g.Msg_LK2, handleLK2)
+	server.AddHandler(hl3g.Msg_CCID, handleCCID)
+	server.AddHandler(hl3g.Msg_GS1, handleGS1)
+	server.AddHandler(hl3g.Msg_UD, handleUD)
+	server.AddHandler(hl3g.Msg_UD2, handleUD2)
+	server.AddHandler(hl3g.Msg_AL, handleAL)
 
 	storage.InitCass(storage.Conf.Cassandra.Host)
 	storage.InitMinio(storage.Conf.Minio.Host)

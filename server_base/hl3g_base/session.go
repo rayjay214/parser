@@ -63,6 +63,30 @@ func (session *Session) CommonReply(imei, proto string) (uint16, error) {
 	return 0, err
 }
 
+func (session *Session) Gs1Reply(imei, proto string, lat, lng, now string) (uint16, error) {
+	var message hl3g.Message
+	var header hl3g.Header
+	header.Prefix = "[3G"
+	header.Imei = imei
+	header.MsgLen = "0000"
+	header.Proto = proto
+
+	message.Header = header
+
+	var body hl3g.HL3G_GS
+	body.Lat = lat
+	body.Lng = lng
+	body.Time = now
+
+	message.Body = &body
+
+	err := session.session.Send(message)
+	if err != nil {
+		return 0, err
+	}
+	return 0, err
+}
+
 func (session *Session) Close() error {
 	return session.session.Close()
 }

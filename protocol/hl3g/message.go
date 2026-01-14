@@ -47,7 +47,7 @@ func (message *Message) Decode(data []byte) error {
 	if err != nil {
 		return err
 	}
-	headerLen := len(h.Proto) + len(h.Imei) + len(h.MsgLen) + len(h.Proto) + 3
+	headerLen := len(h.Prefix) + len(h.Imei) + len(h.MsgLen) + len(h.Proto) + 3
 	message.Header = h
 
 	entity, _, err := message.decodeBody(data[headerLen:])
