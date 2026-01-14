@@ -32,6 +32,12 @@ func handleCCID(session *hl3g_base.Session, message *hl3g.Message) {
 	entity := message.Body.(*hl3g.HL3G_CCID)
 	log.Infof("%v:handle ccid %v, %v", session.ID(), message, entity)
 
+	log.Infof("%v update iccid to %v", session.ID(), entity.Iccid)
+	err := storage.UpdateIccid(session.ID(), entity.Iccid)
+	if err != nil {
+		log.Warnf("%v update iccid failed %v", session.ID(), err)
+	}
+
 	session.CommonReply(message.Header.Imei, message.Header.Proto)
 }
 
@@ -96,119 +102,17 @@ func calcLocType(source LocSource, speed int) int {
 	return base + 3 // 3 / 4 / 5
 }
 
-/*
 func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 	log.Infof("%v:location info %v", imei, info)
 
 	zone, _ := time.LoadLocation("Asia/Shanghai")
-	t, err := time.ParseInLocation("020106150405", info.Date+info.Time, zone)
-	iSpeed, _ := strconv.Atoi(info.Speed)
-	iDirection, _ := strconv.Atoi(info.Direction)
-
-	date := t.Format("20060102")
-	iDate, _ := strconv.Atoi(date)
-
-	loc := storage.Location{
-		Imei:      imei,
-		Date:      iDate,
-		Time:      t.Unix(),
-		Direction: uint16(iDirection),
-		//Lat:       int64(lbsResp.Lat * 1000000),
-		//Lng:       int64(lbsResp.Lng * 1000000),
-		Speed: uint16(iSpeed),
-		Type:  7,
-		Wgs:   "",
-	}
-
-	runinfo := map[string]interface{}{
-		"comm_time": time.Now(),
-		"power":     info.Power,
-		"signal":    info.Gsm,
-		"satellite": info.Power,
-		"loc_time":  t,
-	}
-
-	if iSpeed > 0 {
-		runinfo["state"] = 2
-	} else {
-		runinfo["state"] = 3
-	}
-
-	if info.Located == "A" {
-		fLat, _ := strconv.ParseFloat(info.Lat, 64)
-		fLng, _ := strconv.ParseFloat(info.Lng, 64)
-		loc.Lat = int64(fLat * 1000000)
-		loc.Lng = int64(fLng * 1000000)
-		runinfo["lat"] = fLat
-		runinfo["lng"] = fLng
-		if iSpeed > 0 {
-			loc.Type = 0
-			runinfo["loc_type"] = 0
-		} else {
-			loc.Type = 3
-			runinfo["loc_type"] = 3
-		}
-	} else {
-		var resp LbsResp
-		if len(info.Wifi) > 0 {
-			getWifiLocation(info.Wifi, &resp, imei)
-			if iSpeed > 0 {
-				loc.Type = 3
-				runinfo["loc_type"] = 3
-			} else {
-				loc.Type = 5
-				runinfo["loc_type"] = 5
-			}
-			//防止wifi解析不出来，如果有基站，再用基站解析一次
-			if resp.Lat == 0 && resp.Lng == 0 && len(info.Lbs) > 0 {
-				getLbsLocation(info.Lbs, &resp, imei)
-				if iSpeed > 0 {
-					loc.Type = 1
-					runinfo["loc_type"] = 1
-				} else {
-					loc.Type = 1
-					runinfo["loc_type"] = 4
-				}
-			}
-
-		} else {
-			getLbsLocation(info.Lbs, &resp, imei)
-			if iSpeed > 0 {
-				loc.Type = 1
-				runinfo["loc_type"] = 1
-			} else {
-				loc.Type = 4
-				runinfo["loc_type"] = 4
-			}
-		}
-		loc.Lat = int64(resp.Lat * 1000000)
-		loc.Lng = int64(resp.Lat * 1000000)
-		runinfo["lat"] = resp.Lat
-		runinfo["lng"] = resp.Lng
-	}
-
-	err = storage.InsertLocation(loc)
-	if err != nil {
-		log.Warnf("insert location err %v", err)
-	}
-
-	runinfo["loc_time"] = t
-
-	storage.SetRunInfo(imei, runinfo)
-
-}
-*/
-
-func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
-	log.Infof("%v:location info %v", imei, info)
-
-	zone, _ := time.LoadLocation("Asia/Shanghai")
-	t, _ := time.ParseInLocation("020106150405", info.Date+info.Time, zone)
+	tUtc, _ := time.Parse("020106150405", info.Date+info.Time)
+	tShanghai := tUtc.In(zone)
 
 	iSpeed, _ := strconv.Atoi(info.Speed)
 	iDirection, _ := strconv.Atoi(info.Direction)
 
-	date := t.Format("20060102")
+	date := tShanghai.Format("20060102")
 	iDate, _ := strconv.Atoi(date)
 
 	runinfo := map[string]interface{}{
@@ -216,8 +120,10 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 		"power":     info.Power,
 		"signal":    info.Gsm,
 		"satellite": info.Power,
-		"loc_time":  t,
+		"loc_time":  tShanghai,
 	}
+
+	log.Infof("loc_time is %v", tShanghai)
 
 	if iSpeed > 0 {
 		runinfo["state"] = 2
@@ -228,7 +134,7 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 	loc := storage.Location{
 		Imei:      imei,
 		Date:      iDate,
-		Time:      t.Unix(),
+		Time:      tShanghai.Unix(),
 		Direction: uint16(iDirection),
 		Speed:     uint16(iSpeed),
 		Wgs:       "",
@@ -241,20 +147,17 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 	)
 
 	if info.Located == "A" {
-		// GPS
 		source = LocGPS
 		fLat, _ = strconv.ParseFloat(info.Lat, 64)
 		fLng, _ = strconv.ParseFloat(info.Lng, 64)
 
 	} else {
-		// 非 GPS
 		var resp LbsResp
 
 		if len(info.Wifi) > 0 {
 			getWifiLocation(info.Wifi, &resp, imei)
 			source = LocWiFi
 
-			// wifi 失败回退基站
 			if resp.Lat == 0 && resp.Lng == 0 && len(info.Lbs) > 0 {
 				getLbsLocation(info.Lbs, &resp, imei)
 				source = LocLBS
