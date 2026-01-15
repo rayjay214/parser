@@ -11,6 +11,7 @@ import (
 	"github.com/rayjay214/parser/protocol/jt808/extra"
 	"github.com/rayjay214/parser/server_base/jt808_base"
 	"github.com/rayjay214/parser/storage"
+	"github.com/rayjay214/parser/util"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strconv"
@@ -60,7 +61,6 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	}
 
 	info := map[string]interface{}{
-		//"status":    "2", //maybe useless
 		"state":     "2",
 		"comm_time": time.Now(),
 	}
@@ -337,7 +337,7 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 
 	checkAlarm(entity, &loc, protocol)
 
-	checkFence(&loc)
+	util.CheckFence(&loc)
 }
 
 func checkAlarm(entity *jt808.T808_0x0200, loc *storage.Location, protocol int) {

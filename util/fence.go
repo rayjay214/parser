@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func checkFence(loc *storage.Location) {
+func CheckFence(loc *storage.Location) {
 	openFence, err := storage.CheckFenceSwitch(loc.Imei)
 	if err != nil {
 		return

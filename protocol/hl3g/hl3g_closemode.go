@@ -10,28 +10,28 @@ import (
 	_ "time"
 )
 
-type HL3G_UPLOAD struct {
-	Interval string
+type HL3G_CLOSEMODE struct {
+	Content string
 }
 
-func (entity *HL3G_UPLOAD) MsgID() MsgID {
-	return Msg_UPLOAD
+func (entity *HL3G_CLOSEMODE) MsgID() MsgID {
+	return Msg_CLOSEMODE
 }
 
-func (entity *HL3G_UPLOAD) Encode() ([]byte, error) {
+func (entity *HL3G_CLOSEMODE) Encode() ([]byte, error) {
 	writer := common.NewWriter()
 
-	writer.WriteString(entity.Interval)
+	writer.WriteString(entity.Content)
 
 	return writer.Bytes(), nil
 }
 
-func (entity *HL3G_UPLOAD) Decode(data []byte) (int, error) {
+func (entity *HL3G_CLOSEMODE) Decode(data []byte) (int, error) {
 	//去掉第一个逗号和最后一个]
 	if len(data) > 1 {
 		strData := string(data[1 : len(data)-1])
 		strList := strings.Split(strData, ",")
-		entity.Interval = strList[0]
+		entity.Content = strList[0]
 	}
 
 	return len(data), nil

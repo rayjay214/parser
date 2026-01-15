@@ -6,32 +6,31 @@ import (
 	"github.com/rayjay214/parser/protocol/common"
 	_ "github.com/shopspring/decimal"
 	_ "strconv"
-	"strings"
 	_ "time"
 )
 
-type HL3G_UPLOAD struct {
-	Interval string
+type HL3G_TC struct {
+	Content string
 }
 
-func (entity *HL3G_UPLOAD) MsgID() MsgID {
-	return Msg_UPLOAD
+func (entity *HL3G_TC) MsgID() MsgID {
+	return Msg_TC
 }
 
-func (entity *HL3G_UPLOAD) Encode() ([]byte, error) {
+func (entity *HL3G_TC) Encode() ([]byte, error) {
 	writer := common.NewWriter()
 
-	writer.WriteString(entity.Interval)
+	writer.WriteString(entity.Content)
 
 	return writer.Bytes(), nil
 }
 
-func (entity *HL3G_UPLOAD) Decode(data []byte) (int, error) {
+func (entity *HL3G_TC) Decode(data []byte) (int, error) {
 	//去掉第一个逗号和最后一个]
 	if len(data) > 1 {
 		strData := string(data[1 : len(data)-1])
-		strList := strings.Split(strData, ",")
-		entity.Interval = strList[0]
+		//strList := strings.Split(strData, ",")
+		entity.Content = strData
 	}
 
 	return len(data), nil
