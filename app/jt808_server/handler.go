@@ -294,7 +294,7 @@ func handleLocation(imei uint64, entity *jt808.T808_0x0200, protocol int) {
 		}
 	} else {
 		var lbsResp LbsResp
-		err := getLbsLocation(entity, &lbsResp, protocol)
+		err := getLbsLocation(imei, entity, &lbsResp, protocol)
 		if err != nil {
 			return
 		}

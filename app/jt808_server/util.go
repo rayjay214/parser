@@ -42,7 +42,7 @@ type LbsResp struct {
 	LocType   int
 }
 
-func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) error {
+func getLbsLocation(imei uint64, entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) error {
 	//url := "http://114.215.191.234/locapi"
 	url := "http://121.196.220.14/locapi"
 
@@ -330,6 +330,8 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) e
 
 	body := make(map[string]interface{})
 
+	body["imei"] = fmt.Sprintf("%v", imei)
+
 	if len(lbsInfo.BtsList) > 0 {
 		body["accesstype"] = 0
 		body["bts"] = fmt.Sprintf("%d,%d,%d,%d,%d", lbsInfo.Mcc, lbsInfo.Mnc, lbsInfo.BtsList[0].Lac, lbsInfo.BtsList[0].Cellid, lbsInfo.BtsList[0].Rssi)
@@ -376,6 +378,36 @@ func getLbsLocation(entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) e
 	err = json.Unmarshal(respBytes, lbsResp)
 	if err != nil {
 		return err
+	}
+
+	//如果wifi解析不出来，用基站解析去兜底
+	if lbsResp.Lng == 0 && body["accesstype"] == 1 {
+		body["accesstype"] = 0
+		byteData, _ = json.Marshal(body)
+		//log.Infof("post data is %v", string(byteData))
+		reader = bytes.NewReader(byteData)
+
+		request, err = http.NewRequest("POST", url, reader)
+		defer request.Body.Close()
+		if err != nil {
+			return err
+		}
+		request.Header.Set("Content-Type", "application/json;charset=UTF-8")
+
+		resp, err = client.Do(request)
+		if err != nil {
+			return err
+		}
+
+		respBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(respBytes, lbsResp)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
