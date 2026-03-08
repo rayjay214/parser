@@ -39,7 +39,7 @@ func (handler sessionHandler) HandleSession(sess *link.Session) {
 			continue
 		}
 
-		if message.Header.Proto == "LK2" {
+		if message.Header.Proto == "LK2" || message.Header.Proto == "GS1" {
 			imei, _ := strconv.ParseUint(message.Header.Imei, 10, 64)
 			deviceInfo, _ := storage.GetDevice(imei)
 			if len(deviceInfo) == 0 {

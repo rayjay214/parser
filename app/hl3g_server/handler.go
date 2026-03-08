@@ -326,6 +326,7 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 	runinfo["loc_type"] = loc.Type
 
 	if loc.Lat == 0 || loc.Lng == 0 {
+		log.Warnf("rayjay failed to get location")
 		return
 	}
 
