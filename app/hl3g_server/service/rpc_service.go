@@ -49,7 +49,9 @@ func (s *deviceService) SendCmd(ctx context.Context, req *proto.SendHl3GCmdReque
 		session.CommonReply(imeiStr, req.Proto)
 	case "UPLOAD":
 		var mode string
-		if req.Content == "120" {
+		if req.Content == "30" {
+			mode = "1"
+		} else if req.Content == "120" {
 			mode = "2"
 		} else if req.Content == "300" {
 			mode = "4"
