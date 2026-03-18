@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	geo "github.com/kellydunn/golang-geo"
+	"github.com/qichengzx/coordtransform"
 	"github.com/rayjay214/parser/protocol/hl3g"
 	"github.com/rayjay214/parser/server_base/hl3g_base"
 	"github.com/rayjay214/parser/storage"
@@ -255,6 +257,8 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 
 	*/
 
+	lastRunInfo, _ := storage.GetRunInfo(imei)
+
 	iSpeed, _ := strconv.Atoi(info.Speed)
 	iDirection, _ := strconv.Atoi(info.Direction)
 
@@ -296,6 +300,20 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 		source = LocGPS
 		fLat, _ = strconv.ParseFloat(info.Lat, 64)
 		fLng, _ = strconv.ParseFloat(info.Lng, 64)
+		runinfo["gps_lat"] = fLat
+		runinfo["gps_lng"] = fLng
+
+		if lastRunInfo["gps_lat"] != "" {
+			lastLat, _ := strconv.ParseFloat(lastRunInfo["gps_lat"], 64)
+			lastLng, _ := strconv.ParseFloat(lastRunInfo["gps_lng"], 64)
+			lastDayDistance, _ := strconv.Atoi(lastRunInfo["day_distance"])
+			lastTotalDistance, _ := strconv.Atoi(lastRunInfo["total_distance"])
+			point1 := geo.NewPoint(lastLat, lastLng)
+			point2 := geo.NewPoint(fLat, fLng)
+			distance := int(point1.GreatCircleDistance(point2) * 1000) //m
+			runinfo["day_distance"] = lastDayDistance + distance
+			runinfo["total_distance"] = lastTotalDistance + distance
+		}
 
 	} else {
 		var resp LbsResp
@@ -313,8 +331,10 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 			source = LocLBS
 		}
 
-		fLat = resp.Lat
-		fLng = resp.Lng
+		wgsLng, wgsLat := coordtransform.GCJ02toWGS84(resp.Lng, resp.Lat)
+
+		fLat = wgsLat
+		fLng = wgsLng
 	}
 
 	loc.Lat = int64(fLat * 1e6)
