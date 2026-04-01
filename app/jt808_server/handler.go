@@ -580,11 +580,14 @@ func handle0117(session *jt808_base.Session, message *jt808.Message) {
 	   log.Infof("0117 raw body %x", common.GetHex(bdata))
 	*/
 
+	log.Infof("receive entity %v", entity)
+
 	shortRecord, ok := session.UserData["short_record"].(ShortRecord)
 	if ok {
 		shortRecord.Schedule = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
 		storage.SetRecordSchedule(session.ID(), shortRecord.Schedule)
 		buffer, _ := ioutil.ReadAll(entity.Packet)
+		log.Infof("%v buffer len %v", message.Header.Imei, len(buffer))
 		shortRecord.Writer.Write(buffer)
 	}
 
@@ -595,10 +598,17 @@ func handle0117(session *jt808_base.Session, message *jt808.Message) {
 			session.ReplyShortRecord(entity.PkgNo)
 			return
 		}
-
 		fileSize := len(shortRecord.Writer.Bytes())
-		duration := calDuration(fileSize)
-		fileName := fmt.Sprintf("%v_%v.amr", shortRecord.Imei, shortRecord.StartTime.Unix())
+		var duration int
+		var fileName string
+		if entity.PkgSize > 60 {
+			duration = calDuration(fileSize, true)
+			fileName = fmt.Sprintf("%v_%v.opus", shortRecord.Imei, shortRecord.StartTime.Unix())
+		} else {
+			duration = calDuration(fileSize, false)
+			fileName = fmt.Sprintf("%v_%v.amr", shortRecord.Imei, shortRecord.StartTime.Unix())
+		}
+		log.Debugf("upload record file %v, filesize %v", fileName, fileSize)
 		reader := bytes.NewReader(shortRecord.Writer.Bytes())
 		err = storage.UploadFile("record", fileName, reader, int64(fileSize))
 		if err != nil {
@@ -704,6 +714,13 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 		vorRecord, _ = session.UserData["vor_record"].(*VorRecord)
 	}
 
+	var maxPkgCnt int32
+	if entity.PkgSize > 60 {
+		maxPkgCnt = 470
+	} else {
+		maxPkgCnt = 47
+	}
+
 	if vorRecord.FirstPacket {
 		vorRecord.StartTime = entity.Time
 		vorRecord.EndTime = vorRecord.StartTime.Add(time.Second * 10)
@@ -712,7 +729,7 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 	if entity.PkgNo == 1 { //组包
 		if currBeginTime.Sub(vorRecord.EndTime).Seconds() < 3 &&
 			currBeginTime.Sub(vorRecord.StartTime).Seconds() < 59 &&
-			vorRecord.PkgCnt < 47 {
+			vorRecord.PkgCnt < maxPkgCnt {
 			vorRecord.EndTime = currBeginTime.Add(time.Second * 10)
 			buffer, err := ioutil.ReadAll(entity.Packet)
 			log.Infof("%v rayjay buffer len %v, err is %v", message.Header.Imei, len(buffer), err)
@@ -724,7 +741,6 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 				"state":     "3",
 			}
 			storage.SetRunInfo(message.Header.Imei, info)
-
 			err := storage.CheckAsValue(vorRecord.Imei, "2")
 			if err != nil { //没有增值服务
 				log.Warnf("%v no record time left", vorRecord.Imei)
@@ -737,10 +753,16 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 				session.ReplyVorRecord(entity)
 				return
 			}
-
-			fileName := fmt.Sprintf("%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
 			fileSize := len(vorRecord.Writer.Bytes())
-			duration := calDuration(fileSize)
+			var duration int
+			var fileName string
+			if entity.PkgSize > 60 {
+				duration = calDuration(fileSize, true)
+				fileName = fmt.Sprintf("%v_%v.opus", vorRecord.Imei, vorRecord.StartTime.Unix())
+			} else {
+				duration = calDuration(fileSize, false)
+				fileName = fmt.Sprintf("%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
+			}
 			reader := bytes.NewReader(vorRecord.Writer.Bytes())
 			err = storage.UploadFile("record", fileName, reader, int64(fileSize))
 			if err != nil {

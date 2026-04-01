@@ -414,8 +414,13 @@ func getLbsLocation(imei uint64, entity *jt808.T808_0x0200, lbsResp *LbsResp, pr
 
 }
 
-func calDuration(fileSize int) int {
-	kBytesPerSeconds := 702
+func calDuration(fileSize int, isHD bool) int {
+	var kBytesPerSeconds int
+	if isHD {
+		kBytesPerSeconds = 7000
+	} else {
+		kBytesPerSeconds = 702
+	}
 	//kBytesPerSeconds := 737 //AMR-NB 5.90 kbps
 	quotient := fileSize / kBytesPerSeconds
 	remainder := fileSize % kBytesPerSeconds
