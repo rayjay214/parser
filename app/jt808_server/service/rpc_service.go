@@ -63,6 +63,7 @@ func (s *deviceService) OpenShortRecord(ctx context.Context, req *proto.OpenShor
 			return &resp, err
 		}
 		storage.SetCmdLog(req.Imei, 10, req.TimeId, req.Protocol) //应答中没有seqno, 用type代替
+		session.UserData["short_record_time"] = req.Seconds
 	default:
 		resp.Message = "protocol not supported"
 		return &resp, errors.New("protocol not supported")

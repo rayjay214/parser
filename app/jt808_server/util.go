@@ -42,6 +42,14 @@ type LbsResp struct {
 	LocType   int
 }
 
+var (
+	kOpusTenSecMinPkgCnt = 35 //10s opus包最小个数,RECFORMAT,3,16000,24000#
+	//kOpusTenSecMinPkgCnt = 25 //10s opus包最小个数,RECFORMAT,3,16000,16000#
+	//kOpusBytesPerSecond = 2258 //RECFORMAT,3,16000,16000#
+	kOpusBytesPerSecond = 3255 //RECFORMAT,3,16000,24000#
+	kAmrBytesPerSecond  = 702
+)
+
 func getLbsLocation(imei uint64, entity *jt808.T808_0x0200, lbsResp *LbsResp, protocol int) error {
 	//url := "http://114.215.191.234/locapi"
 	url := "http://121.196.220.14/locapi"
@@ -417,9 +425,9 @@ func getLbsLocation(imei uint64, entity *jt808.T808_0x0200, lbsResp *LbsResp, pr
 func calDuration(fileSize int, isHD bool) int {
 	var kBytesPerSeconds int
 	if isHD {
-		kBytesPerSeconds = 7000
+		kBytesPerSeconds = kOpusBytesPerSecond
 	} else {
-		kBytesPerSeconds = 702
+		kBytesPerSeconds = kAmrBytesPerSecond
 	}
 	//kBytesPerSeconds := 737 //AMR-NB 5.90 kbps
 	quotient := fileSize / kBytesPerSeconds

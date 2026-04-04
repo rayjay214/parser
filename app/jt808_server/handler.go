@@ -582,6 +582,14 @@ func handle0117(session *jt808_base.Session, message *jt808.Message) {
 
 	log.Infof("receive entity %v", entity)
 
+	var recordTime int
+	shortRecordTime, ok := session.UserData["short_record"].(int)
+	if ok {
+		recordTime = shortRecordTime
+	} else {
+		recordTime = 10
+	}
+
 	shortRecord, ok := session.UserData["short_record"].(ShortRecord)
 	if ok {
 		shortRecord.Schedule = float32(entity.PkgNo) * 100.0 / float32(entity.PkgSize)
@@ -601,7 +609,7 @@ func handle0117(session *jt808_base.Session, message *jt808.Message) {
 		fileSize := len(shortRecord.Writer.Bytes())
 		var duration int
 		var fileName string
-		if entity.PkgSize > 60 {
+		if entity.PkgSize > byte(recordTime/10*kOpusTenSecMinPkgCnt) {
 			duration = calDuration(fileSize, true)
 			fileName = fmt.Sprintf("%v_%v.opus", shortRecord.Imei, shortRecord.StartTime.Unix())
 		} else {
@@ -715,8 +723,8 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 	}
 
 	var maxPkgCnt int32
-	if entity.PkgSize > 60 {
-		maxPkgCnt = 470
+	if entity.PkgSize > byte(kOpusTenSecMinPkgCnt) {
+		maxPkgCnt = int32(kOpusTenSecMinPkgCnt * 6)
 	} else {
 		maxPkgCnt = 47
 	}
@@ -756,7 +764,7 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 			fileSize := len(vorRecord.Writer.Bytes())
 			var duration int
 			var fileName string
-			if entity.PkgSize > 60 {
+			if entity.PkgSize > byte(kOpusTenSecMinPkgCnt) {
 				duration = calDuration(fileSize, true)
 				fileName = fmt.Sprintf("%v_%v.opus", vorRecord.Imei, vorRecord.StartTime.Unix())
 			} else {
