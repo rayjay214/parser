@@ -772,6 +772,7 @@ func handle0118(session *jt808_base.Session, message *jt808.Message) {
 				fileName = fmt.Sprintf("%v_%v.amr", vorRecord.Imei, vorRecord.StartTime.Unix())
 			}
 			reader := bytes.NewReader(vorRecord.Writer.Bytes())
+			log.Debugf("vor upload record file %v, filesize %v", fileName, fileSize)
 			err = storage.UploadFile("record", fileName, reader, int64(fileSize))
 			if err != nil {
 				log.Warnf("upload record failed %v", err)
