@@ -18,6 +18,14 @@ func handleLK2(session *hl3g_base.Session, message *hl3g.Message) {
 	entity := message.Body.(*hl3g.HL3G_LK2)
 	log.Infof("%v:handle lk2 %v, %v", session.ID(), message, entity)
 
+	nImei, err := strconv.ParseUint(message.Header.Imei, 10, 64)
+	deviceInfo, _ := storage.GetDevice(nImei)
+	if len(deviceInfo) == 0 {
+		log.Warnf("imei %v not exist", message.Header.Imei)
+		session.Close()
+		return
+	}
+
 	fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("imei_%v", session.ID()), "fake_online_state").Result()
 	if fakeOnline == "0" {
 		session.CommonReply(message.Header.Imei, message.Header.Proto)
