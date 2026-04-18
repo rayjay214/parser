@@ -609,7 +609,7 @@ func handle0117(session *jt808_base.Session, message *jt808.Message) {
 		fileSize := len(shortRecord.Writer.Bytes())
 		var duration int
 		var fileName string
-		if entity.PkgSize > byte(recordTime/10*kOpusTenSecMinPkgCnt) {
+		if entity.PkgSize > byte(recordTime/10*kOpusTenSecMinPkgCnt) && session.Protocol == 5 {
 			duration = calDuration(fileSize, true)
 			fileName = fmt.Sprintf("%v_%v.opus", shortRecord.Imei, shortRecord.StartTime.Unix())
 		} else {
