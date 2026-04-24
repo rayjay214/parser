@@ -39,7 +39,7 @@ type LbsResp struct {
 }
 
 func getLbsLocation(lbsInfo []hl3g.LbsInfo, lbsResp *LbsResp, imei uint64) error {
-	url := "http://121.196.220.14/locapi"
+	url := "http://8.130.23.234/locapi"
 
 	lbsResp.LocType = 1
 
@@ -84,7 +84,7 @@ func getLbsLocation(lbsInfo []hl3g.LbsInfo, lbsResp *LbsResp, imei uint64) error
 }
 
 func getWifiLocation(wifiInfo []hl3g.WifiInfo, lbsResp *LbsResp, imei uint64) error {
-	url := "http://121.196.220.14/locapi"
+	url := "http://8.130.23.234/locapi"
 
 	lbsResp.LocType = 1
 
