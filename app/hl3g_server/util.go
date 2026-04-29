@@ -83,7 +83,7 @@ func getLbsLocation(lbsInfo []hl3g.LbsInfo, lbsResp *LbsResp, imei uint64) error
 	return nil
 }
 
-func getWifiLocation(wifiInfo []hl3g.WifiInfo, lbsResp *LbsResp, imei uint64) error {
+func getWifiLocation(wifiInfo []hl3g.WifiInfo, lbsInfo []hl3g.LbsInfo, lbsResp *LbsResp, imei uint64) error {
 	url := "http://8.130.23.234/locapi"
 
 	lbsResp.LocType = 1
@@ -96,6 +96,16 @@ func getWifiLocation(wifiInfo []hl3g.WifiInfo, lbsResp *LbsResp, imei uint64) er
 		macList = append(macList, strMacs)
 	}
 	body["macs"] = strings.Join(macList, "|")
+
+	if len(lbsInfo) > 0 {
+		body["bts"] = fmt.Sprintf("%s,%s,%s,%s,%s", lbsInfo[0].Mcc, lbsInfo[0].Mnc, lbsInfo[0].Lac, lbsInfo[0].CellId, lbsInfo[0].Rssi)
+		var btsList []string
+		for _, bts := range lbsInfo {
+			strBts := fmt.Sprintf("%s,%s,%s,%s,%s", bts.Mcc, bts.Mnc, bts.Lac, bts.CellId, bts.Rssi)
+			btsList = append(btsList, strBts)
+		}
+		body["nearbts"] = strings.Join(btsList, "|")
+	}
 	byteData, _ := json.Marshal(body)
 	fmt.Printf("%v post data is %v\n", imei, string(byteData))
 	reader := bytes.NewReader(byteData)

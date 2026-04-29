@@ -327,7 +327,7 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 		var resp LbsResp
 
 		if len(info.Wifi) > 0 {
-			getWifiLocation(info.Wifi, &resp, imei)
+			getWifiLocation(info.Wifi, info.Lbs, &resp, imei)
 			source = LocWiFi
 
 			if resp.Lat == 0 && resp.Lng == 0 && len(info.Lbs) > 0 {
