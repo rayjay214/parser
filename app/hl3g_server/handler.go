@@ -110,13 +110,13 @@ func handleSTU(session *hl3g_base.Session, message *hl3g.Message) {
 }
 
 func handleRESET(session *hl3g_base.Session, message *hl3g.Message) {
-	entity := message.Body.(*hl3g.HL3G_STU)
-	log.Infof("%v:handle stu %v, %v", session.ID(), message, entity)
+	entity := message.Body.(*hl3g.HL3G_RESET)
+	log.Infof("%v:handle reset %v, %v", session.ID(), message, entity)
 }
 
 func handleFACTORY(session *hl3g_base.Session, message *hl3g.Message) {
-	entity := message.Body.(*hl3g.HL3G_STU)
-	log.Infof("%v:handle stu %v, %v", session.ID(), message, entity)
+	entity := message.Body.(*hl3g.HL3G_FACTORY)
+	log.Infof("%v:handle factory %v, %v", session.ID(), message, entity)
 }
 
 func handleVERNO(session *hl3g_base.Session, message *hl3g.Message) {
@@ -334,7 +334,7 @@ func handleLocation(imei uint64, info *hl3g.LocationInfo, protocol int) {
 				getLbsLocation(info.Lbs, &resp, imei)
 				source = LocLBS
 			}
-		} else {
+		} else if len(info.Lbs) > 0 {
 			getLbsLocation(info.Lbs, &resp, imei)
 			source = LocLBS
 		}

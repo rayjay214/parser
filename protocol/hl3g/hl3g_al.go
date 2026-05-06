@@ -28,9 +28,14 @@ func (entity *HL3G_AL) Encode() ([]byte, error) {
 }
 
 func (entity *HL3G_AL) Decode(data []byte) (int, error) {
-	//去掉第一个逗号和最后一个]
+	if len(data) < 2 {
+		return 0, nil
+	}
 	strData := string(data[1 : len(data)-1])
 	strList := strings.Split(strData, ",")
+	if len(strList) < 17 {
+		return 0, nil
+	}
 	entity.LocInfo.Date = strList[0]
 	entity.LocInfo.Time = strList[1]
 	entity.LocInfo.Located = strList[2]
@@ -50,6 +55,10 @@ func (entity *HL3G_AL) Decode(data []byte) (int, error) {
 	entity.LocInfo.LbsNum = strList[16]
 
 	lbsCount, _ := strconv.Atoi(entity.LocInfo.LbsNum)
+	maxLbsCount := (len(strList) - 17) / 3
+	if lbsCount > maxLbsCount {
+		lbsCount = maxLbsCount
+	}
 	for i := 0; i < lbsCount; i++ {
 		var lbs LbsInfo
 		lbs.Ta = strList[17]
@@ -67,8 +76,15 @@ func (entity *HL3G_AL) Decode(data []byte) (int, error) {
 		currentIndex = 17
 	}
 
+	if currentIndex >= len(strList) {
+		return len(data), nil
+	}
 	entity.LocInfo.WifiNum = strList[currentIndex]
 	wifiCount, _ := strconv.Atoi(entity.LocInfo.WifiNum)
+	maxWifiCount := (len(strList) - currentIndex - 1) / 3
+	if wifiCount > maxWifiCount {
+		wifiCount = maxWifiCount
+	}
 	for i := 0; i < wifiCount; i++ {
 		var wifi WifiInfo
 		wifi.Name = strList[currentIndex+1+i*3]
@@ -76,7 +92,6 @@ func (entity *HL3G_AL) Decode(data []byte) (int, error) {
 		wifi.Rssi = strList[currentIndex+3+i*3]
 		entity.LocInfo.Wifi = append(entity.LocInfo.Wifi, wifi)
 	}
-	//entity.LocInfo.LocAccuracy = strList[currentIndex+1+wifiCount*3]
 
 	return len(data), nil
 }
