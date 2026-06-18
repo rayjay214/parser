@@ -881,32 +881,6 @@ func handle0107(session *jt808_base.Session, message *jt808.Message) {
 
 	iccid := entity.Iccid
 
-	fTrans := func(s *string) {
-		runes := []rune(*s) // 将字符串转换为rune切片，处理Unicode字符
-		for i := 0; i < len(runes); i++ {
-			switch runes[i] {
-			case 0x3A:
-				runes[i] = 0x41
-			case 0x3B:
-				runes[i] = 0x42
-			case 0x3C:
-				runes[i] = 0x43
-			case 0x3D:
-				runes[i] = 0x44
-			case 0x3E:
-				runes[i] = 0x45
-			case 0x3F:
-				runes[i] = 0x46
-			}
-
-			if runes[i] > 0x60 && runes[i] < 0x7B {
-				runes[i] = runes[i] ^ 32
-			}
-		}
-		*s = string(runes) // 将rune切片转换回字符串
-	}
-	fTrans(&iccid)
-
 	deviceInfo, err := storage.GetDevice(session.ID())
 	if err != nil {
 		session.Reply(message, jt808.T808_0x8100_ResultSuccess)
@@ -914,8 +888,8 @@ func handle0107(session *jt808_base.Session, message *jt808.Message) {
 	}
 	if v, ok := deviceInfo["iccid"]; ok {
 		if v != iccid {
-			log.Infof("%v update iccid from %v to %v", session.ID(), iccid, entity.Iccid)
-			err = storage.UpdateIccid(session.ID(), entity.Iccid)
+			log.Infof("%v update iccid from %v to %v", session.ID(), v, iccid)
+			err = storage.UpdateIccid(session.ID(), iccid)
 			if err != nil {
 				log.Warnf("%v update iccid failed %v", session.ID(), err)
 			}

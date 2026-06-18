@@ -103,8 +103,18 @@ func BcdToString(data []byte, ignorePadding ...bool) string {
 
     buf := make([]byte, 0, len(data)*2)
     for i := 0; i < len(data); i++ {
-        buf = append(buf, data[i]&0xf0>>4+'0')
-        buf = append(buf, data[i]&0x0f+'0')
+        high := data[i] >> 4
+        low := data[i] & 0x0f
+        if high < 10 {
+            buf = append(buf, high+'0')
+        } else {
+            buf = append(buf, high-10+'A')
+        }
+        if low < 10 {
+            buf = append(buf, low+'0')
+        } else {
+            buf = append(buf, low-10+'A')
+        }
     }
 
     if len(ignorePadding) == 0 || !ignorePadding[0] {
