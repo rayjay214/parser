@@ -232,6 +232,18 @@ func (s *deviceService) HandelDeviceCtrl(ctx context.Context, req *proto.HandelD
 		return &resp, errors.New("can't find device")
 	}
 
+	//protocol 10 cmd 10: 设备设置为离线
+	if req.Protocol == "10" && req.Cmd == 10 {
+		info := map[string]interface{}{
+			"state": "1",
+		}
+		if err := storage.SetRunInfo(req.Imei, info); err != nil {
+			log.Warnf("%v update offline state failed %v", req.Imei, err)
+		}
+		log.Warnf("%v device ctrl cmd 10, set offline", req.Imei)
+		return &resp, nil
+	}
+
 	seqNo, err := session.DeviceCtrl(byte(req.Cmd))
 	if err != nil {
 		return &resp, err
