@@ -241,7 +241,6 @@ func (s *deviceService) HandelDeviceCtrl(ctx context.Context, req *proto.HandelD
 			log.Warnf("%v update offline state failed %v", req.Imei, err)
 		}
 		log.Warnf("%v device ctrl cmd 10, set offline", req.Imei)
-		return &resp, nil
 	}
 
 	seqNo, err := session.DeviceCtrl(byte(req.Cmd))
