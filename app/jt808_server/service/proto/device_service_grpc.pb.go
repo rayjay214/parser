@@ -30,6 +30,8 @@ type DeviceServiceClient interface {
 	SetShakeValue(ctx context.Context, in *SetShakeValueRequest, opts ...grpc.CallOption) (*CommonReply, error)
 	HandelDeviceCtrl(ctx context.Context, in *HandelDeviceCtrlRequest, opts ...grpc.CallOption) (*CommonReply, error)
 	HandelRestart(ctx context.Context, in *HandelRestartRequest, opts ...grpc.CallOption) (*CommonReply, error)
+	HandelSleep(ctx context.Context, in *HandelSleepRequest, opts ...grpc.CallOption) (*CommonReply, error)
+	HandelWake(ctx context.Context, in *HandelWakeRequest, opts ...grpc.CallOption) (*CommonReply, error)
 }
 
 type deviceServiceClient struct {
@@ -112,6 +114,24 @@ func (c *deviceServiceClient) HandelRestart(ctx context.Context, in *HandelResta
 	return out, nil
 }
 
+func (c *deviceServiceClient) HandelSleep(ctx context.Context, in *HandelSleepRequest, opts ...grpc.CallOption) (*CommonReply, error) {
+	out := new(CommonReply)
+	err := c.cc.Invoke(ctx, "/service.DeviceService/HandelSleep", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceServiceClient) HandelWake(ctx context.Context, in *HandelWakeRequest, opts ...grpc.CallOption) (*CommonReply, error) {
+	out := new(CommonReply)
+	err := c.cc.Invoke(ctx, "/service.DeviceService/HandelWake", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DeviceServiceServer is the server API for DeviceService service.
 // All implementations must embed UnimplementedDeviceServiceServer
 // for forward compatibility
@@ -124,6 +144,8 @@ type DeviceServiceServer interface {
 	SetShakeValue(context.Context, *SetShakeValueRequest) (*CommonReply, error)
 	HandelDeviceCtrl(context.Context, *HandelDeviceCtrlRequest) (*CommonReply, error)
 	HandelRestart(context.Context, *HandelRestartRequest) (*CommonReply, error)
+	HandelSleep(context.Context, *HandelSleepRequest) (*CommonReply, error)
+	HandelWake(context.Context, *HandelWakeRequest) (*CommonReply, error)
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -154,6 +176,12 @@ func (UnimplementedDeviceServiceServer) HandelDeviceCtrl(context.Context, *Hande
 }
 func (UnimplementedDeviceServiceServer) HandelRestart(context.Context, *HandelRestartRequest) (*CommonReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandelRestart not implemented")
+}
+func (UnimplementedDeviceServiceServer) HandelSleep(context.Context, *HandelSleepRequest) (*CommonReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandelSleep not implemented")
+}
+func (UnimplementedDeviceServiceServer) HandelWake(context.Context, *HandelWakeRequest) (*CommonReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandelWake not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 
@@ -312,6 +340,42 @@ func _DeviceService_HandelRestart_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceService_HandelSleep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandelSleepRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).HandelSleep(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.DeviceService/HandelSleep",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).HandelSleep(ctx, req.(*HandelSleepRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceService_HandelWake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandelWakeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).HandelWake(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.DeviceService/HandelWake",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).HandelWake(ctx, req.(*HandelWakeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DeviceService_ServiceDesc is the grpc.ServiceDesc for DeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -350,6 +414,14 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HandelRestart",
 			Handler:    _DeviceService_HandelRestart_Handler,
+		},
+		{
+			MethodName: "HandelSleep",
+			Handler:    _DeviceService_HandelSleep_Handler,
+		},
+		{
+			MethodName: "HandelWake",
+			Handler:    _DeviceService_HandelWake_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

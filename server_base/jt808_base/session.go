@@ -285,6 +285,18 @@ func (session *Session) DeviceRestart() (uint16, error) {
 	return session.Send(&entity)
 }
 
+// 0x8135 一键休眠
+func (session *Session) DeviceSleep() (uint16, error) {
+	entity := jt808.T808_0x8135{}
+	return session.Send(&entity)
+}
+
+// 0x8145 一键唤醒
+func (session *Session) DeviceWake() (uint16, error) {
+	entity := jt808.T808_0x8145{}
+	return session.Send(&entity)
+}
+
 // 发起请求
 func (session *Session) Request(entity jt808.Entity, cb func(answer *jt808.Message)) (uint16, error) {
 	serialNo, err := session.Send(entity)

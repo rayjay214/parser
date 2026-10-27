@@ -47,7 +47,7 @@ func handle0102(session *jt808_base.Session, message *jt808.Message) {
 	}
 
 	//C3假关机状态下不更新状态
-	if session.Protocol == 8 {
+	if session.Protocol == 8 || session.Protocol == 10 {
 		fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("fakeoff_%v", session.ID()), "fake_heartbeat").Result()
 		if fakeOnline == "1" {
 			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
@@ -137,6 +137,15 @@ func handle0808(session *jt808_base.Session, message *jt808.Message) {
 func handle0200(session *jt808_base.Session, message *jt808.Message) {
 	entity := message.Body.(*jt808.T808_0x0200)
 	log.Infof("%v handle 0200", session.ID())
+
+	if session.Protocol == 10 {
+		fakeOnline, _ := storage.Rdb.HGet(context.Background(), fmt.Sprintf("fakeoff_%v", session.ID()), "fake_heartbeat").Result()
+		if fakeOnline == "1" {
+			session.Reply(message, jt808.T808_0x8100_ResultSuccess)
+			return
+		}
+	}
+
 	handleLocation(message.Header.Imei, entity, session.Protocol)
 
 	session.Reply(message, jt808.T808_0x8100_ResultSuccess)

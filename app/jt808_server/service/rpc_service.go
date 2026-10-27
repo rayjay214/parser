@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/rayjay214/parser/app/jt808_server/service/proto"
 	"github.com/rayjay214/parser/protocol/common"
 	"github.com/rayjay214/parser/server_base/jt808_base"
@@ -10,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
+	"time"
 )
 
 var gJt808Server *jt808_base.Server
@@ -264,6 +266,74 @@ func (s *deviceService) HandelRestart(ctx context.Context, req *proto.HandelRest
 	}
 
 	seqNo, err := session.DeviceRestart()
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
+
+	return &resp, nil
+}
+
+func (s *deviceService) HandelSleep(ctx context.Context, req *proto.HandelSleepRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	if req.Protocol == "10" {
+		info := map[string]interface{}{
+			"state": "1",
+		}
+		if err := storage.SetRunInfo(req.Imei, info); err != nil {
+			log.Warnf("%v update offline state failed %v", req.Imei, err)
+		}
+
+		key := fmt.Sprintf("fakeoff_%v", req.Imei)
+		storage.Rdb.HSet(context.Background(), key, map[string]interface{}{
+			"fake_heartbeat": 1,
+		}).Result()
+		storage.Rdb.Expire(context.Background(), key, 600*time.Second).Result()
+
+		log.Warnf("%v device set offline", req.Imei)
+	}
+
+	seqNo, err := session.DeviceSleep()
+	if err != nil {
+		return &resp, err
+	}
+	storage.SetCmdLog(req.Imei, seqNo, req.TimeId, req.Protocol)
+
+	return &resp, nil
+}
+
+func (s *deviceService) HandelWake(ctx context.Context, req *proto.HandelWakeRequest) (*proto.CommonReply, error) {
+	var resp proto.CommonReply
+	resp.Message = "ok"
+	session, ok := gJt808Server.GetSession(req.Imei)
+
+	if !ok {
+		log.Errorf("can't find device %v", req.Imei)
+		resp.Message = "can't find device"
+		return &resp, errors.New("can't find device")
+	}
+
+	if req.Protocol == "10" {
+		info := map[string]interface{}{
+			"state": "2",
+		}
+		if err := storage.SetRunInfo(req.Imei, info); err != nil {
+			log.Warnf("%v update offline state failed %v", req.Imei, err)
+		}
+		log.Warnf("%v device set offline", req.Imei)
+		storage.Rdb.Del(context.Background(), fmt.Sprintf("fakeoff_%v", session.ID()))
+	}
+
+	seqNo, err := session.DeviceWake()
 	if err != nil {
 		return &resp, err
 	}
