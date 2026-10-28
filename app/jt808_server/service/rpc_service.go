@@ -116,7 +116,7 @@ func (s *deviceService) SetLocMode(ctx context.Context, req *proto.SetLocModeReq
 	content := ""
 
 	switch req.Protocol {
-	case "1", "2":
+	case "1", "2", "10":
 		switch req.Mode {
 		case "1": //性能
 			writer.WriteByte(1)
